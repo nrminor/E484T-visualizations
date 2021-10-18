@@ -54,13 +54,25 @@ gisaid_fasta_df$distance <- rep(0, nrow(gisaid_fasta_df))
 
 
 
-### IDENTIFYING VARIANT NAMES IN FASTA ###
+### IDENTIFYING VARIANT NAMES & TYPES IN FASTA ###
 for (i in 1:nrow(gisaid_vcf)){
   info <- gisaid_vcf[i, "INFO"]
   info_split <- unlist(strsplit(info, split = ";"))
   gisaid_vcf[i, "SAMPLES"] <- info_split[grep("^VARSEQ", info_split)]
 }
 gisaid_vcf$SAMPLES <- str_replace_all(gisaid_vcf$SAMPLES, "VARSEQ=", "")
+
+for (i in 1:nrow(gisaid_vcf)){
+  info <- gisaid_vcf[i, "INFO"]
+  info_split <- unlist(strsplit(info, split = ";"))
+  gisaid_vcf[i, "MUTATION_TYPE"] <- info_split[grep("^TYPE", info_split)]
+}
+gisaid_vcf$MUTATION_TYPE <- str_replace_all(gisaid_vcf$MUTATION_TYPE, "TYPE=", "")
+
+
+
+### REMOVING INDELS FROM GISAID VCF, LEAVING ONLY SNVs ###
+gisaid_vcf <- gisaid_vcf[!grepl("Deletion", gisaid_vcf$MUTATION_TYPE),]
 
 
 
@@ -140,26 +152,39 @@ fasta_df$day_of_infection <- c(113,124,131,159,198,297,388)
 
 # COUNTING MUTATIONS ####
 # Counting the number of variants at each sampling event
-crude_vcf = read.delim("data/alltimepoints_variants_20210928.vcf", skip = 13)
-crude_vcf <- crude_vcf[grepl("VARSEQ",crude_vcf$INFO, fixed=T),] ; rownames(crude_vcf) <- NULL
+test1_variants = read.delim("data/USA_WI-WSLH-202168_2020.vcf", skip = 12)[,-10]
+test2_variants = read.delim("data/USA_WI-UW-5350_2021.vcf", skip = 12)[,-10]
+test3_variants = read.delim("data/USA_WI-UW-2731_2021.vcf", skip = 12)[,-10]
+test4_variants = read.delim("data/USA_WI-UW-2731-T2_2021.vcf", skip = 12)[,-10]
+test5_variants = read.delim("data/USA_WI-UW-2731-T3_2021.vcf", skip = 12)[,-10]
+test6_variants = read.delim("data/USA_WI-UW-2731-T4_2021.vcf", skip = 12)[,-10]
+test7_variants = read.delim("data/USA_CA-Spietz-09282021.vcf", skip = 12)[,-10]
+crude_vcf_merged = rbind(test1_variants, test2_variants, test3_variants, test4_variants, test5_variants, test6_variants, test7_variants)
+crude_vcf_merged <- crude_vcf_merged[grepl("VARSEQ",crude_vcf_merged$INFO, fixed=T),] ; rownames(crude_vcf_merged) <- NULL
 
 # creating new column for dates with only a sample ID in it (for the time being)
-for (i in 1:nrow(crude_vcf)){
-  info <- crude_vcf[i, "INFO"]
+for (i in 1:nrow(crude_vcf_merged)){
+  info <- crude_vcf_merged[i, "INFO"]
   info_split <- unlist(strsplit(info, split = ";"))
-  crude_vcf[i, "SAMPLE_ID"] <- info_split[grep("^VARSEQ", info_split)]
+  crude_vcf_merged[i, "SAMPLE_ID"] <- info_split[grep("^VARSEQ", info_split)]
 }
-crude_vcf$SAMPLE_ID <- str_replace_all(crude_vcf$SAMPLE_ID, "VARSEQ=", "")
+crude_vcf_merged$SAMPLE_ID <- str_replace_all(crude_vcf_merged$SAMPLE_ID, "VARSEQ=", "")
+crude_vcf_merged$SAMPLE_ID <- str_replace(crude_vcf_merged$SAMPLE_ID, "-consensus", "")
+crude_vcf_merged$SAMPLE_ID <- str_replace(crude_vcf_merged$SAMPLE_ID, "-DBaker", "")
+
+# creating new column with only mutation type
+for (i in 1:nrow(crude_vcf_merged)){
+  info <- crude_vcf_merged[i, "INFO"]
+  info_split <- unlist(strsplit(info, split = ";"))
+  crude_vcf_merged[i, "MUTATION_TYPE"] <- info_split[grep("^TYPE", info_split)]
+}
+crude_vcf_merged$MUTATION_TYPE <- str_replace_all(crude_vcf_merged$MUTATION_TYPE, "TYPE=", "")
 
 # summing up mutations per sample
-fasta_df$distance <- 0
-for (i in 1:length(crude_vcf$SAMPLE_ID)){
-  sub <- unlist(strsplit(crude_vcf$SAMPLE_ID[i], split = ","))
-  for (j in sub){
-    add <- fasta_df[fasta_df$Sample_ID==j,"distance"] + 1
-    fasta_df[fasta_df$Sample_ID==j,"distance"] <- add
-  }
-} 
+fasta_df$distance <- NA
+for (i in unique(crude_vcf_merged$SAMPLE_ID)){
+  fasta_df[fasta_df$Sample_ID==i, "distance"] <- nrow(crude_vcf_merged[crude_vcf_merged$SAMPLE_ID==i,])
+}
 
 
 
@@ -170,11 +195,15 @@ for (i in 1:length(crude_vcf$SAMPLE_ID)){
 
 ### PLOTTING ###
 plot(fasta_df$Date, fasta_df$distance, 
-     xlim = c(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date)+30), ylim = c(0,60),
+     xlim = c(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date)+31), ylim = c(0,60),
      xlab = "Date of Infection (Sept. 2020 - Sept. 2021)", ylab = "Genetic Distance from Wuhan-1", 
-     frame.plot = F, cex.axis = 0.8, cex.lab = 0.85, las = 1, pch = 20, 
+     frame.plot = F, cex.axis = 0.8, cex.lab = 0.85, las = 1, pch = 20, xaxt="n",
      cex = 3, col = "#4B7395", type = "n")
 grid()
+
+months_axis <- seq(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date)+31, by = "month")
+axis(side = 1, at = months_axis,
+     labels = format(months_axis, "%b"), cex.axis = 0.8)
 
 points(gisaid_fasta_df$date, gisaid_fasta_df$distance,
        pch = 20, cex = 1, col = gisaid_fasta_df$color)
@@ -184,7 +213,7 @@ points(gisaid_fasta_df$date, gisaid_fasta_df$distance,
 
 text(as.Date("2021-03-22"), 45, labels = "Bamlanivimab\nTreatment", cex = 0.8, bty = "l")
 segments(as.Date("2021-03-22"), y0 = -2, y1 = 42, col = "red", lty = 2)
-segments(as.Date("2021-03-22"), y0 = 48, y1 = 51, col = "red", lty = 2)
+segments(as.Date("2021-03-22"), y0 = 48, y1 = 61, col = "red", lty = 2)
 
 # abline(VOC_lm, col = rgb(165/255,15/255,21/255,3/4), lwd = 4)
 

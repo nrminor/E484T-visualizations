@@ -14,7 +14,7 @@ fasta_df <- separate(data = fasta_df, col = 1,
                      into = c("Sample_ID", "Date"),
                      sep = ",")
 fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
-fasta_df$day_of_infection <- c(113,124,131,159,198,297)
+fasta_df$day_of_infection <- c(113,124,131,159,198,297,388)
 
 # COUNTING MUTATIONS ####
 # Counting the number of variants at each sampling event

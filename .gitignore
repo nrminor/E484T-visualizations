@@ -1,5 +1,7 @@
 visuals/
 data/
+.Rproj.user/
 
 E484T_paper.Rproj
-.*
+.DS_Store
+.Rhistory

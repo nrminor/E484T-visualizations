@@ -1,16 +1,16 @@
 library(ggplot2)
 library(cowplot)
 
-data_filepath = "/Volumes/Nick Minor External HD 1/E484T"
+data_filepath = "/Volumes/working_ssd/e484t_manuscript/"
 setwd(data_filepath)
 Ct <- read.csv("data/Ct_timeline.csv")
 Ct$Encounter.date <- as.Date(Ct$Encounter.date, format = "%m/%d/%y")
 Ct$SARS.CoV.2.PCR.Ct <- round(Ct$SARS.CoV.2.PCR.Ct, digits = 1)
 
 ppi <- 300
-png("visuals/Ct_values_treatments.png", width = 8*ppi, height = 8*ppi, res = ppi)
+# png("visuals/Ct_values_treatments.png", width = 8*ppi, height = 8*ppi, res = ppi)
 # svg("visuals/Ct_values_treatments.svg")
-# pdf(file = "visuals/Ct_values_treatments.pdf", width = 8, height = 8)
+pdf(file = "visuals/Ct_values_treatments.pdf", width = 8, height = 8)
 
 Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test, 
                                   y = SARS.CoV.2.PCR.Ct)) +
@@ -51,6 +51,6 @@ treatments <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.tes
         panel.background = element_rect(fill = "#FFFFFF"))
 
 plot_grid(Ct_plot, treatments, align = "v", ncol = 1, rel_heights = c(.7, .3), axis = "tblr")
-ggsave("visuals/Ct_values_treatments.svg", device = svg, dpi = "print") # a "print" dpi is 300, the same as what we set ppi to above 
+# ggsave("visuals/Ct_values_treatments.svg", device = svg, dpi = "print") # a "print" dpi is 300, the same as what we set ppi to above 
 dev.off()
 
