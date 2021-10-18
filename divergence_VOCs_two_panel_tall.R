@@ -1,11 +1,11 @@
 library(Biostrings)
 library(tidyverse)
-data_filepath = "/Volumes/Nick Minor External HD 1/E484T/"
+data_filepath = "/Volumes/working_ssd/e484t_manuscript"
 setwd(data_filepath)
 
 # READING IN FASTA ####
 # reading in/re-formatting fasta
-patient_fasta <- readDNAStringSet("/Volumes/Nick Minor External HD 1/E484T/PT0001_alltimepoints_20210908.fasta")
+patient_fasta <- readDNAStringSet("data/PT0001_alltimepoints_20210928.fasta")
 seq_names = names(patient_fasta)
 sequence = paste(patient_fasta)
 fasta_df <- data.frame(seq_names, sequence)
@@ -18,13 +18,15 @@ fasta_df$day_of_infection <- c(113,124,131,159,198,297)
 
 # COUNTING MUTATIONS ####
 # Counting the number of variants at each sampling event
-test1_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/USA_WI-WSLH-202168_2020.vcf", skip = 12)[,-10]
-test2_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/USA_WI-UW-5350_2021.vcf", skip = 12)[,-10]
-test3_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/USA_WI-UW-2731_2021.vcf", skip = 12)[,-10]
-test4_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/USA_WI-UW-2731-T2_2021.vcf", skip = 12)[,-10]
-test5_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/USA_WI-UW-2731-T3_2021.vcf", skip = 12)[,-10]
-test6_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/USA_WI-UW-2731-T4_2021.vcf", skip = 12)[,-10]
-crude_vcf_merged = rbind(test1_variants, test2_variants, test3_variants, test4_variants, test5_variants, test6_variants)
+test1_variants = read.delim("data/USA_WI-WSLH-202168_2020.vcf", skip = 12)[,-10]
+test2_variants = read.delim("data/USA_WI-UW-5350_2021.vcf", skip = 12)[,-10]
+test3_variants = read.delim("data/USA_WI-UW-2731_2021.vcf", skip = 12)[,-10]
+test4_variants = read.delim("data/USA_WI-UW-2731-T2_2021.vcf", skip = 12)[,-10]
+test5_variants = read.delim("data/USA_WI-UW-2731-T3_2021.vcf", skip = 12)[,-10]
+test6_variants = read.delim("data/USA_WI-UW-2731-T4_2021.vcf", skip = 12)[,-10]
+test7_variants = read.delim("data/USA_CA-Spietz-09282021.vcf", skip = 12)[,-10]
+crude_vcf_merged = rbind(test1_variants, test2_variants, test3_variants, test4_variants, test5_variants, test6_variants, test7_variants)
+crude_vcf_merged <- crude_vcf_merged[grepl("VARSEQ",crude_vcf_merged$INFO, fixed=T),] ; rownames(crude_vcf_merged) <- NULL
 
 # creating new column for dates with only a sample ID in it (for the time being)
 for (i in 1:nrow(crude_vcf_merged)){
@@ -33,6 +35,8 @@ for (i in 1:nrow(crude_vcf_merged)){
   crude_vcf_merged[i, "SAMPLE_ID"] <- info_split[grep("^VARSEQ", info_split)]
 }
 crude_vcf_merged$SAMPLE_ID <- str_replace_all(crude_vcf_merged$SAMPLE_ID, "VARSEQ=", "")
+crude_vcf_merged$SAMPLE_ID <- str_replace(crude_vcf_merged$SAMPLE_ID, "-consensus", "")
+crude_vcf_merged$SAMPLE_ID <- str_replace(crude_vcf_merged$SAMPLE_ID, "-DBaker", "")
 
 # summing up mutations per sample
 fasta_df$distance <- NA
@@ -41,7 +45,7 @@ for (i in unique(crude_vcf_merged$SAMPLE_ID)){
 }
 
 # PREPARING MUTATION DATA ####
-crude_vcf = read.delim("/Volumes/Nick Minor External HD 1/E484T/alltimepoints_variants.vcf", skip = 13)
+crude_vcf = read.delim("data/alltimepoints_variants.vcf", skip = 13)
 
 # creating a column with all dates of detection for each mutation
 for (i in 1:nrow(crude_vcf)){
@@ -195,6 +199,8 @@ par(mar=c(5.1, 4.1, 4.1, 2.1))
   simulation <- rbind(simulation1, simulation2)
   simul_lm <- lm(simulation$distance ~ simulation$day_of_infection)
   patient_lm <- lm(fasta_df$distance ~ fasta_df$day_of_infection)
+  
+  lineages <- as.data.frame(table(gisaid_meta$Pango.lineage))
   
   plot(fasta_df$day_of_infection, fasta_df$distance, ylim = c(25, 50), xlim = c(0, 350),
        xlab = NA, ylab = "Genetic Distance from Wuhan Variant", frame.plot = F,

@@ -1,11 +1,13 @@
 library(Biostrings)
 library(tidyverse)
-data_filepath = "/Volumes/Nick Minor External HD 1/E484T/"
+data_filepath = "/Volumes/working_ssd/e484t_manuscript/"
 setwd(data_filepath)
+
+
 
 # READING IN FASTA ####
 # reading in/re-formatting fasta
-patient_fasta <- readDNAStringSet("/Volumes/Nick Minor External HD 1/E484T/data/PT0001_alltimepoints_20210908.fasta")
+patient_fasta <- readDNAStringSet("data/PT0001_alltimepoints_20210908.fasta")
 seq_names = names(patient_fasta)
 sequence = paste(patient_fasta)
 fasta_df <- data.frame(seq_names, sequence)
@@ -16,33 +18,33 @@ fasta_df <- separate(data = fasta_df, col = 1,
 fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
 fasta_df$day_of_infection <- c(113,124,131,159,198,297)
 
+
+
 # COUNTING MUTATIONS ####
 # Counting the number of variants at each sampling event
-test1_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/data/USA_WI-WSLH-202168_2020.vcf", skip = 12)[,-10]
-test2_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/data/USA_WI-UW-5350_2021.vcf", skip = 12)[,-10]
-test3_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/data/USA_WI-UW-2731_2021.vcf", skip = 12)[,-10]
-test4_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/data/USA_WI-UW-2731-T2_2021.vcf", skip = 12)[,-10]
-test5_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/data/USA_WI-UW-2731-T3_2021.vcf", skip = 12)[,-10]
-test6_variants = read.delim("/Volumes/Nick Minor External HD 1/E484T/data/USA_WI-UW-2731-T4_2021.vcf", skip = 12)[,-10]
-crude_vcf_merged = rbind(test1_variants, test2_variants, test3_variants, test4_variants, test5_variants, test6_variants)
+crude_vcf = read.delim("data/alltimepoints_variants.vcf", skip = 13)
 
 # creating new column for dates with only a sample ID in it (for the time being)
-for (i in 1:nrow(crude_vcf_merged)){
-  info <- crude_vcf_merged[i, "INFO"]
+for (i in 1:nrow(crude_vcf)){
+  info <- crude_vcf[i, "INFO"]
   info_split <- unlist(strsplit(info, split = ";"))
-  crude_vcf_merged[i, "SAMPLE_ID"] <- info_split[grep("^VARSEQ", info_split)]
+  crude_vcf[i, "SAMPLE_ID"] <- info_split[grep("^VARSEQ", info_split)]
 }
-crude_vcf_merged$SAMPLE_ID <- str_replace_all(crude_vcf_merged$SAMPLE_ID, "VARSEQ=", "")
+crude_vcf$SAMPLE_ID <- str_replace_all(crude_vcf$SAMPLE_ID, "VARSEQ=", "")
 
 # summing up mutations per sample
-fasta_df$distance <- NA
-for (i in unique(crude_vcf_merged$SAMPLE_ID)){
-  fasta_df[fasta_df$Sample_ID==i, "distance"] <- nrow(crude_vcf_merged[crude_vcf_merged$SAMPLE_ID==i,])
-}
+fasta_df$distance <- 0
+for (i in 1:length(crude_vcf$SAMPLE_ID)){
+  sub <- unlist(strsplit(crude_vcf$SAMPLE_ID[i], split = ","))
+  for (j in sub){
+    add <- fasta_df[fasta_df$Sample_ID==j,"distance"] + 1
+    fasta_df[fasta_df$Sample_ID==j,"distance"] <- add
+  }
+} 
+
+
 
 # PREPARING MUTATION DATA ####
-crude_vcf = read.delim("/Volumes/Nick Minor External HD 1/E484T/alltimepoints_variants.vcf", skip = 13)
-
 # creating a column with all dates of detection for each mutation
 for (i in 1:nrow(crude_vcf)){
   info <- crude_vcf[i, "INFO"]
@@ -134,6 +136,8 @@ SARS_genes <- data.frame("name" = c("ORF1a", "ORF1b", "S", NA, NA, NA, NA, NA, N
                                    "lightgreen", "lightblue", "gold", "orange"),
                          "left_out_names" = c(NA, NA, NA, "ORF3a", "E", "M", "ORF6", "ORF7a", "ORF8", "ORF9b", NA))
 
+
+
 # PLOTTING MUTATIONS ####
 matrix.layout<-matrix(c(1,1,1,2,1,1,1,2),nrow=2,byrow = TRUE)
 matrix.layout
@@ -185,18 +189,21 @@ par(mar=c(5.1,4.1,4.1,2.1))
          bty = "o", cex = 0.8, box.col = "white", ncol = 3, xpd = T, xjust = 0.5)
 }
 
+
+
 # PLOTTING DIVERGENCE ####
-{par(mar=c(5.1,0,4.1,2.1))
+par(mar=c(5.1,0,4.1,2.1))
 set.seed(14)
 simulation1 <- data.frame("distance" = rnorm(1000, 35, 5),
                          "day_of_infection" = rnorm(1000, 100, 100))
 simulation2 <- data.frame("distance" = rnorm(1000, 40, 5),
                           "day_of_infection" = rnorm(1000, 200, 100))
+
 simulation <- rbind(simulation1, simulation2)
 simul_lm <- lm(simulation$distance ~ simulation$day_of_infection)
-patient_lm <- lm(fasta_df$distance ~ fasta_df$day_of_infection)
+patient_lm <- lm(fasta_df$distance ~ fasta_df$Date)
 
-plot(fasta_df$day_of_infection, fasta_df$distance, ylim = c(25, 50), xlim = c(0, 350),
+plot(fasta_df$Date, fasta_df$distance, ylim = c(0, 50),
      xlab = "Day of Infection", ylab = "Genetic Distance from Wuhan Variant", frame.plot = F,
      cex.axis = 0.8, cex.lab = 0.85, las = 1, pch = 20, cex = 3, col = "#4B7395", type = "n")
 grid()
@@ -204,15 +211,15 @@ text(198, 45, labels = "Antibody\nTreatment", cex = 0.8, bty = "l")
 segments(x0 = 198, y0 = 22, y1 = 43, col = "red", lty = 2)
 segments(x0 = 198, y0 = 47, y1 = 51, col = "red", lty = 2)
 
-points(simulation$day_of_infection, simulation$distance,
+points(gisaid_fasta_df$date, gisaid_fasta_df$distance,
        pch = 20, cex = 1, col = rgb(75/255,115/255,149/255,0.5))
-abline(simul_lm, col = rgb(75/255,115/255,149/255,1), lwd = 4)
+abline(VOC_lm, col = rgb(75/255,115/255,149/255,1), lwd = 4)
 
-points(fasta_df$day_of_infection, fasta_df$distance,
+points(fasta_df$Date, fasta_df$distance,
        pch = 20, cex = 2, col = rgb(227/255,152/255,58/255, 0.8))
 abline(patient_lm, col = rgb(227/255,152/255,58/255,1), lwd = 4)
 legend(175, 53.5, legend = c("US VOCs", "Patient Mutations"),
        col = c(rgb(75/255,115/255,149/255,1), rgb(227/255,152/255,58/255,1)),
        lwd = c(4,4), ncol = 2, xpd = T, xjust = 0.5, bty = "n", cex = 0.8)
-}
+
 
