@@ -27,15 +27,13 @@ Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test,
   geom_point(aes(color=1/SARS.CoV.2.PCR.Ct), size = 4) + 
   geom_label(aes(x=Encounter.days.post.first.SARS.CoV.2.test, 
                  y = SARS.CoV.2.PCR.Ct, label = SARS.CoV.2.PCR.Ct), 
-             nudge_y = c(1, 1, -1, 1, -1, 1, -1, 1)) + 
+             nudge_y = c(1, 1, -1, 1, -1, 1, -1, 1, 1, 1)) + 
   theme(panel.background = element_rect(fill = "#FFFFFF"), 
         panel.grid = element_line(color = "#D3D3D3"),
         axis.line = element_line(color = "black"), 
         legend.key.height = unit(1, 'cm')) + 
   labs(x = "Days post first SARS-CoV-2 positive test",
        y = "PCR Cycle Threshold (Ct)",
-       title = "Ct Values, a Proxy for Viral Load, through Course of Infection",
-       subtitle = "Outagamie County, Wisconsin",
        col="") + 
   scale_color_gradient(name = "Relative\nViral Load",
                        breaks = c(0.04, 0.06, 0.08),
