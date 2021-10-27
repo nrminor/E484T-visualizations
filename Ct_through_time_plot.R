@@ -15,30 +15,33 @@ pdf(file = "visuals/Ct_values_treatments.pdf", width = 8, height = 8)
 Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test, 
                                   y = SARS.CoV.2.PCR.Ct)) +
   coord_cartesian(ylim = c(30,10)) + 
-  scale_x_continuous(n.breaks = 10) +
+  scale_x_continuous(n.breaks = 5) +
   geom_segment(aes(x = Encounter.days.post.first.SARS.CoV.2.test[6],
                    xend=Encounter.days.post.first.SARS.CoV.2.test[6],
-                   y=10,yend=31), 
+                   y=9,yend=31), 
                colour = "red", size=0.5) +
-  geom_text(aes(x=Encounter.days.post.first.SARS.CoV.2.test[6], 
-                y= 9, label = "Bamlanivumab administered"), 
-            color = "black", vjust = 1, size = 4) +
-  geom_line(linetype = 2) + 
+  # geom_text(aes(x=Encounter.days.post.first.SARS.CoV.2.test[6], 
+  #               y= 9, label = "Bamlanivumab administered"), 
+  #           color = "black", vjust = 1, size = 4) +
+  # geom_line(linetype = 2) + 
   geom_point(aes(color=1/SARS.CoV.2.PCR.Ct), size = 4) + 
   geom_label(aes(x=Encounter.days.post.first.SARS.CoV.2.test, 
                  y = SARS.CoV.2.PCR.Ct, label = SARS.CoV.2.PCR.Ct), 
-             nudge_y = c(1, 1, -1, 1, -1, 1, -1, 1, 1, 1)) + 
+             nudge_y = c(1.2, 1.2, -1.2, 1.2, -1.2, 1.2, -1.2, 1.2, 1.2, 1.2)) + 
   theme(panel.background = element_rect(fill = "#FFFFFF"), 
         panel.grid = element_line(color = "#D3D3D3"),
         axis.line = element_line(color = "black"), 
         legend.key.height = unit(1, 'cm')) + 
-  labs(x = "Days post first SARS-CoV-2 positive test",
+  labs(x = "Day of Infection",
        y = "PCR Cycle Threshold (Ct)",
        col="") + 
-  scale_color_gradient(name = "Relative\nViral Load",
-                       breaks = c(0.04, 0.06, 0.08),
-                       labels = c("Low","Medium","High"))
-# Ct_plot
+  theme(legend.position = "none") + 
+  theme(plot.margin = unit(par("mar"), "line")) +
+  theme(text = element_text(size = 14))
+  # scale_color_gradient(name = "Relative\nViral Load",
+  #                      breaks = c(0.04, 0.06, 0.08),
+  #                      labels = c("Low","Medium","High"))
+Ct_plot
 
 treatments <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test, 
                                     y = SARS.CoV.2.PCR.Ct)) +
@@ -50,5 +53,9 @@ treatments <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.tes
 
 plot_grid(Ct_plot, treatments, align = "v", ncol = 1, rel_heights = c(.7, .3), axis = "tblr")
 # ggsave("visuals/Ct_values_treatments.svg", device = svg, dpi = "print") # a "print" dpi is 300, the same as what we set ppi to above 
+ggsave("visuals/Ct_values_treatments.pdf", 
+       device = pdf, dpi = "print",
+       height = 6,
+       width = 8) # a "print" dpi is 300, the same as what we set ppi to above 
 dev.off()
 

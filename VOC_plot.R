@@ -9,8 +9,8 @@ setwd(data_filepath)
 
 
 ### IMPORTING VCF & METADATA
-gisaid_vcf <- read.delim("data/b112_enriched_subsampled_aligned.vcf", skip = 13)
-gisaid_meta <- read.delim("data/b112_enriched_subsampled_metadata.tsv")
+gisaid_vcf <- read.delim("data/b12_enriched_global/b12_enriched_global_subsampled_aligned.vcf", skip = 13)
+gisaid_meta <- read.delim("data/b12_enriched_global/b12_enriched_global_subsampled_metadata.tsv")
 strain_dates <- gisaid_meta[,c(1,4)]
 strain_dates$date <- as.Date(strain_dates$date, format = "%Y-%m-%d")
 strain_dates$day_of_infection <- as.numeric(NA)
@@ -22,7 +22,7 @@ for (i in 1:nrow(strain_dates)){
 
 
 ### PREPARING THE GISAID SUBSAMPLE FASTA ###
-gisaid_fasta <- readDNAStringSet("data/b112_enriched_subsampled_aligned.fasta")
+gisaid_fasta <- readDNAStringSet("data/b12_enriched_global/b12_enriched_global.aligned.fasta")
 seq_names = names(gisaid_fasta)
 sequence = paste(gisaid_fasta)
 gisaid_fasta_df <- data.frame(seq_names, sequence)
@@ -30,17 +30,13 @@ remove(gisaid_fasta)
 
 
 
-### PREPARING METADATA ###
+### PREPARING METADATA & MATCHING WITH FASTA ###
 gisaid_fasta_df <- gisaid_fasta_df[match(strain_dates$strain, gisaid_fasta_df$seq_names),] ; rownames(gisaid_fasta_df) <- NULL
 gisaid_meta <- gisaid_meta[match(strain_dates$strain, gisaid_meta$strain),] ; rownames(gisaid_meta) <- NULL
 
-which(is.na(gisaid_fasta_df$seq_names)) # -> to_remove
-which(is.na(gisaid_meta$strain)) # -> to_remove2
-{ # fixing the issue at 4940
-  gisaid_meta$strain[4935:4945] == gisaid_fasta_df$seq_names[4935:4945]
-  gisaid_meta$strain[4940] <- str_replace(gisaid_meta$strain[4940], "United_States", "USA")
-  gisaid_fasta_df$seq_names[4940] <- gisaid_meta$strain[4940]
-}
+# which(is.na(gisaid_fasta_df$seq_names)) # -> to_remove
+# which(is.na(gisaid_meta$strain)) # -> to_remove2
+gisaid_fasta_df$seq_names[which(is.na(gisaid_fasta_df$seq_names))] <- gisaid_meta$strain[which(is.na(gisaid_fasta_df$seq_names))]
 which(is.na(gisaid_fasta_df$seq_names))
 which(is.na(gisaid_meta$strain))
 
@@ -50,11 +46,9 @@ gisaid_meta$date <- as.Date(strain_dates$date, format = "%Y-%m-%d")
 gisaid_fasta_df$day_of_infection <- strain_dates$day_of_infection
 gisaid_meta$day_of_infection <- strain_dates$day_of_infection
 
-gisaid_fasta_df$distance <- rep(0, nrow(gisaid_fasta_df))
 
 
-
-### IDENTIFYING VARIANT NAMES & TYPES IN FASTA ###
+### IDENTIFYING VARIANT NAMES & TYPES IN VCF ###
 for (i in 1:nrow(gisaid_vcf)){
   info <- gisaid_vcf[i, "INFO"]
   info_split <- unlist(strsplit(info, split = ";"))
@@ -71,12 +65,13 @@ gisaid_vcf$MUTATION_TYPE <- str_replace_all(gisaid_vcf$MUTATION_TYPE, "TYPE=", "
 
 
 
-### REMOVING INDELS FROM GISAID VCF, LEAVING ONLY SNVs ###
+### REMOVING ANY INDELS FROM GISAID VCF, LEAVING ONLY SNVs ###
 gisaid_vcf <- gisaid_vcf[!grepl("Deletion", gisaid_vcf$MUTATION_TYPE),]
 
 
 
 ### COUNTING MUTATIONS FOR EACH SAMPLE ###
+gisaid_fasta_df$distance <- rep(0, nrow(gisaid_fasta_df))
 for (i in 1:length(gisaid_vcf$SAMPLES)){
   sub <- unlist(strsplit(gisaid_vcf$SAMPLES[i], split = ","))
   for (j in sub){
@@ -87,7 +82,7 @@ for (i in 1:length(gisaid_vcf$SAMPLES)){
 
 
 
-### SIMPLE LINEAR MODEL OF MUTATION INCREASE ###
+### SIMPLISTIC LINEAR MODEL OF MUTATION INCREASE ###
 # VOC_lm <- lm(gisaid_fasta_df$distance ~ gisaid_fasta_df$date) 
 
 
@@ -124,19 +119,19 @@ for (i in 1:nrow(gisaid_fasta_df)){
   gisaid_fasta_df[i,"color"] <- lineages[lineages$lineage==gisaid_fasta_df$lineage[i],"color"]
   gisaid_fasta_df[i,"label"] <- lineages[lineages$lineage==gisaid_fasta_df$lineage[i],"label"]
 }
-rgb <- col2rgb(gisaid_fasta_df$color, alpha = T)
-rgb[4,] <- round(rgb[4,]/2)
-rgb <- unlist(rgb)
-gisaid_fasta_df$rgb <- ""
-for (i in 1:ncol(rgb)){
-  sub <- rgb[,i]
-  names(sub) <- NULL
-  gisaid_fasta_df$rgb[i] <- paste(sub, collapse = ",")
-}
+# rgb <- col2rgb(gisaid_fasta_df$color, alpha = T)
+# rgb[4,] <- round(rgb[4,]/2)
+# rgb <- unlist(rgb)
+# gisaid_fasta_df$rgb <- ""
+# for (i in 1:ncol(rgb)){
+#   sub <- rgb[,i]
+#   names(sub) <- NULL
+#   gisaid_fasta_df$rgb[i] <- paste(sub, collapse = ",")
+# }
 
 
 ### IMPORTING PATIENT DATA ###
-patient_fasta <- readDNAStringSet("data/PT0001_alltimepoints_20210928.fasta")
+patient_fasta <- readDNAStringSet("data/alltimepoints_20211025.fasta")
 seq_names <- names(patient_fasta)
 sequence <- paste(patient_fasta)
 fasta_df <- data.frame(seq_names, sequence)
@@ -146,50 +141,42 @@ fasta_df <- separate(data = fasta_df, col = 1,
                      into = c("Sample_ID", "Date"),
                      sep = ",")
 fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
-fasta_df$day_of_infection <- c(113,124,131,159,198,297,388)
+fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388)
 
 
 
 # COUNTING MUTATIONS ####
-# Counting the number of variants at each sampling event
-test1_variants = read.delim("data/USA_WI-WSLH-202168_2020.vcf", skip = 12)[,-10]
-test2_variants = read.delim("data/USA_WI-UW-5350_2021.vcf", skip = 12)[,-10]
-test3_variants = read.delim("data/USA_WI-UW-2731_2021.vcf", skip = 12)[,-10]
-test4_variants = read.delim("data/USA_WI-UW-2731-T2_2021.vcf", skip = 12)[,-10]
-test5_variants = read.delim("data/USA_WI-UW-2731-T3_2021.vcf", skip = 12)[,-10]
-test6_variants = read.delim("data/USA_WI-UW-2731-T4_2021.vcf", skip = 12)[,-10]
-test7_variants = read.delim("data/USA_CA-Spietz-09282021.vcf", skip = 12)[,-10]
-crude_vcf_merged = rbind(test1_variants, test2_variants, test3_variants, test4_variants, test5_variants, test6_variants, test7_variants)
-crude_vcf_merged <- crude_vcf_merged[grepl("VARSEQ",crude_vcf_merged$INFO, fixed=T),] ; rownames(crude_vcf_merged) <- NULL
+# reading in and reducing to usable mutations (those that contain "VARSEQ")
+crude_vcf <- read.delim("data/alltimepoints_variants_20211021.vcf", skip = 13)
+crude_vcf <- crude_vcf[grepl("VARSEQ",crude_vcf$INFO, fixed=T),] ; rownames(crude_vcf) <- NULL
 
 # creating new column for dates with only a sample ID in it (for the time being)
-for (i in 1:nrow(crude_vcf_merged)){
-  info <- crude_vcf_merged[i, "INFO"]
+for (i in 1:nrow(crude_vcf)){
+  info <- crude_vcf[i, "INFO"]
   info_split <- unlist(strsplit(info, split = ";"))
-  crude_vcf_merged[i, "SAMPLE_ID"] <- info_split[grep("^VARSEQ", info_split)]
+  crude_vcf[i, "SAMPLE_ID"] <- info_split[grep("^VARSEQ", info_split)]
 }
-crude_vcf_merged$SAMPLE_ID <- str_replace_all(crude_vcf_merged$SAMPLE_ID, "VARSEQ=", "")
-crude_vcf_merged$SAMPLE_ID <- str_replace(crude_vcf_merged$SAMPLE_ID, "-consensus", "")
-crude_vcf_merged$SAMPLE_ID <- str_replace(crude_vcf_merged$SAMPLE_ID, "-DBaker", "")
+crude_vcf$SAMPLE_ID <- str_replace_all(crude_vcf$SAMPLE_ID, "VARSEQ=", "")
+crude_vcf$SAMPLE_ID <- str_replace(crude_vcf$SAMPLE_ID, "-consensus", "")
+crude_vcf$SAMPLE_ID <- str_replace(crude_vcf$SAMPLE_ID, "-DBaker", "")
 
 # creating new column with only mutation type
-for (i in 1:nrow(crude_vcf_merged)){
-  info <- crude_vcf_merged[i, "INFO"]
+for (i in 1:nrow(crude_vcf)){
+  info <- crude_vcf[i, "INFO"]
   info_split <- unlist(strsplit(info, split = ";"))
-  crude_vcf_merged[i, "MUTATION_TYPE"] <- info_split[grep("^TYPE", info_split)]
+  crude_vcf[i, "MUTATION_TYPE"] <- info_split[grep("^TYPE", info_split)]
 }
-crude_vcf_merged$MUTATION_TYPE <- str_replace_all(crude_vcf_merged$MUTATION_TYPE, "TYPE=", "")
+crude_vcf$MUTATION_TYPE <- str_replace_all(crude_vcf$MUTATION_TYPE, "TYPE=", "")
 
 # summing up mutations per sample
-fasta_df$distance <- NA
-for (i in unique(crude_vcf_merged$SAMPLE_ID)){
-  fasta_df[fasta_df$Sample_ID==i, "distance"] <- nrow(crude_vcf_merged[crude_vcf_merged$SAMPLE_ID==i,])
-}
-
-
-
-### SIMPLE LINEAR MODEL OF PATIENT MUTATIONS THROUGH TIME
-# patient_lm <- lm(fasta_df$distance ~ fasta_df$Date)
+fasta_df$distance <- 0
+for (i in 1:length(crude_vcf$SAMPLE_ID)){
+  sub <- unlist(strsplit(crude_vcf$SAMPLE_ID[i], split = ","))
+  for (j in sub){
+    add <- fasta_df[fasta_df$Sample_ID==j,"distance"] + 1
+    fasta_df[fasta_df$Sample_ID==j,"distance"] <- add
+  }
+} 
 
 
 
@@ -204,9 +191,6 @@ grid()
 months_axis <- seq(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date)+31, by = "month")
 axis(side = 1, at = months_axis,
      labels = format(months_axis, "%b"), cex.axis = 0.8)
-
-points(gisaid_fasta_df$date, gisaid_fasta_df$distance,
-       pch = 20, cex = 1, col = gisaid_fasta_df$color)
 
 points(gisaid_fasta_df$date, gisaid_fasta_df$distance,
        pch = 20, cex = 1, col = gisaid_fasta_df$color)
