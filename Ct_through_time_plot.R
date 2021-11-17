@@ -7,10 +7,11 @@ Ct <- read.csv("data/Ct_timeline.csv")
 Ct$Encounter.date <- as.Date(Ct$Encounter.date, format = "%m/%d/%y")
 Ct$SARS.CoV.2.PCR.Ct <- round(Ct$SARS.CoV.2.PCR.Ct, digits = 1)
 
-ppi <- 300
+# ppi <- 300
 # png("visuals/Ct_values_treatments.png", width = 8*ppi, height = 8*ppi, res = ppi)
 # svg("visuals/Ct_values_treatments.svg")
-pdf(file = "visuals/Ct_values_treatments.pdf", width = 8, height = 8)
+pdf(file = "/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/Ct_values_treatments.pdf", 
+    width = 8, height = 6)
 
 Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test, 
                                   y = SARS.CoV.2.PCR.Ct)) +
@@ -24,7 +25,7 @@ Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test,
   #               y= 9, label = "Bamlanivumab administered"), 
   #           color = "black", vjust = 1, size = 4) +
   # geom_line(linetype = 2) + 
-  geom_point(aes(color=1/SARS.CoV.2.PCR.Ct), size = 4) + 
+  geom_point(size = 4) + 
   geom_label(aes(x=Encounter.days.post.first.SARS.CoV.2.test, 
                  y = SARS.CoV.2.PCR.Ct, label = SARS.CoV.2.PCR.Ct), 
              nudge_y = c(1.2, 1.2, -1.2, 1.2, -1.2, 1.2, -1.2, 1.2, 1.2, 1.2)) + 
@@ -43,19 +44,19 @@ Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test,
   #                      labels = c("Low","Medium","High"))
 Ct_plot
 
-treatments <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test, 
-                                    y = SARS.CoV.2.PCR.Ct)) +
-  scale_x_continuous(n.breaks = 10, position = "top") + 
-  theme(axis.title.x=element_blank(),
-        axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(),
-        axis.line.y = element_blank(), axis.line.x = element_line(color = "black"),
-        panel.background = element_rect(fill = "#FFFFFF"))
-
-plot_grid(Ct_plot, treatments, align = "v", ncol = 1, rel_heights = c(.7, .3), axis = "tblr")
-# ggsave("visuals/Ct_values_treatments.svg", device = svg, dpi = "print") # a "print" dpi is 300, the same as what we set ppi to above 
-ggsave("visuals/Ct_values_treatments.pdf", 
-       device = pdf, dpi = "print",
-       height = 6,
-       width = 8) # a "print" dpi is 300, the same as what we set ppi to above 
+# treatments <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test, 
+#                                     y = SARS.CoV.2.PCR.Ct)) +
+#   scale_x_continuous(n.breaks = 10, position = "top") + 
+#   theme(axis.title.x=element_blank(),
+#         axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(),
+#         axis.line.y = element_blank(), axis.line.x = element_line(color = "black"),
+#         panel.background = element_rect(fill = "#FFFFFF"))
+# 
+# plot_grid(Ct_plot, treatments, align = "v", ncol = 1, rel_heights = c(.7, .3), axis = "tblr")
+# # ggsave("visuals/Ct_values_treatments.svg", device = svg, dpi = "print") # a "print" dpi is 300, the same as what we set ppi to above 
+# ggsave("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/Ct_values_treatments.pdf", 
+#        device = pdf, dpi = "print",
+#        height = 6,
+#        width = 8) # a "print" dpi is 300, the same as what we set ppi to above 
 dev.off()
 

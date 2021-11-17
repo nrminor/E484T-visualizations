@@ -1,5 +1,5 @@
 
-### PREPARING THE ENVIRONMENT ###
+### PREPARING THE ENVIRONMENT ####
 library(Biostrings)
 library(tidyverse)
 library(RColorBrewer)
@@ -8,8 +8,9 @@ setwd(data_filepath)
 
 
 
-### IMPORTING VCF & METADATA
+### IMPORTING VCF & METADATA ####
 gisaid_vcf <- read.delim("data/b12_enriched_global/b12_enriched_global_subsampled_aligned.vcf", skip = 13)
+gisaid_vcf <- gisaid_vcf[grepl("VARSEQ",gisaid_vcf$INFO, fixed=T),] ; rownames(gisaid_vcf) <- NULL
 gisaid_meta <- read.delim("data/b12_enriched_global/b12_enriched_global_subsampled_metadata.tsv")
 strain_dates <- gisaid_meta[,c(1,4)]
 strain_dates$date <- as.Date(strain_dates$date, format = "%Y-%m-%d")
@@ -21,7 +22,7 @@ for (i in 1:nrow(strain_dates)){
 
 
 
-### PREPARING THE GISAID SUBSAMPLE FASTA ###
+### PREPARING THE GISAID SUBSAMPLE FASTA ####
 gisaid_fasta <- readDNAStringSet("data/b12_enriched_global/b12_enriched_global.aligned.fasta")
 seq_names = names(gisaid_fasta)
 sequence = paste(gisaid_fasta)
@@ -30,7 +31,7 @@ remove(gisaid_fasta)
 
 
 
-### PREPARING METADATA & MATCHING WITH FASTA ###
+### PREPARING METADATA & MATCHING WITH FASTA ####
 gisaid_fasta_df <- gisaid_fasta_df[match(strain_dates$strain, gisaid_fasta_df$seq_names),] ; rownames(gisaid_fasta_df) <- NULL
 gisaid_meta <- gisaid_meta[match(strain_dates$strain, gisaid_meta$strain),] ; rownames(gisaid_meta) <- NULL
 
@@ -48,7 +49,7 @@ gisaid_meta$day_of_infection <- strain_dates$day_of_infection
 
 
 
-### IDENTIFYING VARIANT NAMES & TYPES IN VCF ###
+### IDENTIFYING VARIANT NAMES, TYPES, & FREQUENCIES IN VCF ####
 for (i in 1:nrow(gisaid_vcf)){
   info <- gisaid_vcf[i, "INFO"]
   info_split <- unlist(strsplit(info, split = ";"))
@@ -63,14 +64,21 @@ for (i in 1:nrow(gisaid_vcf)){
 }
 gisaid_vcf$MUTATION_TYPE <- str_replace_all(gisaid_vcf$MUTATION_TYPE, "TYPE=", "")
 
+for (i in 1:nrow(gisaid_vcf)){
+  info <- gisaid_vcf[i, "INFO"]
+  info_split <- unlist(strsplit(info, split = ";"))
+  gisaid_vcf[i, "FREQ"] <- info_split[grep("^VF", info_split)]
+}
+gisaid_vcf$FREQ <- str_replace_all(gisaid_vcf$FREQ, "VF=", "")
 
 
-### REMOVING ANY INDELS FROM GISAID VCF, LEAVING ONLY SNVs ###
+
+### REMOVING ANY INDELS FROM GISAID VCF, LEAVING ONLY SNVs ####
 gisaid_vcf <- gisaid_vcf[!grepl("Deletion", gisaid_vcf$MUTATION_TYPE),]
 
 
 
-### COUNTING MUTATIONS FOR EACH SAMPLE ###
+### COUNTING MUTATIONS FOR EACH SAMPLE ####
 gisaid_fasta_df$distance <- rep(0, nrow(gisaid_fasta_df))
 for (i in 1:length(gisaid_vcf$SAMPLES)){
   sub <- unlist(strsplit(gisaid_vcf$SAMPLES[i], split = ","))
@@ -82,12 +90,12 @@ for (i in 1:length(gisaid_vcf$SAMPLES)){
 
 
 
-### SIMPLISTIC LINEAR MODEL OF MUTATION INCREASE ###
+### SIMPLISTIC LINEAR MODEL OF MUTATION INCREASE ####
 # VOC_lm <- lm(gisaid_fasta_df$distance ~ gisaid_fasta_df$date) 
 
 
 
-### IDENTIFYING PANGO LINEAGES IN GISAID SUBSAMPLE ###
+### IDENTIFYING PANGO LINEAGES IN GISAID SUBSAMPLE ####
 lineages <- as.data.frame(table(gisaid_meta$Pango.lineage))
 colnames(lineages) <- c("lineage", "count")
 lineages <- lineages[order(lineages$count, decreasing = T),] ; rownames(lineages) <- NULL
@@ -111,7 +119,7 @@ lineages$label[5:nrow(lineages)] <- rep("other", times = length(lineages$label[5
 
 
 
-### MOVING LINEAGE DATA INTO FASTA DF ###
+### MOVING LINEAGE DATA INTO FASTA DF ####
 gisaid_fasta_df$lineage <- gisaid_meta$Pango.lineage
 gisaid_fasta_df$color <- ""
 gisaid_fasta_df$label <- ""
@@ -130,8 +138,8 @@ for (i in 1:nrow(gisaid_fasta_df)){
 # }
 
 
-### IMPORTING PATIENT DATA ###
-patient_fasta <- readDNAStringSet("data/alltimepoints_20211025.fasta")
+### IMPORTING PATIENT DATA ####
+patient_fasta <- readDNAStringSet("data/alltimepoints_20211104.fasta")
 seq_names <- names(patient_fasta)
 sequence <- paste(patient_fasta)
 fasta_df <- data.frame(seq_names, sequence)
@@ -145,9 +153,9 @@ fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388)
 
 
 
-# COUNTING MUTATIONS ####
+### COUNTING MUTATIONS #####
 # reading in and reducing to usable mutations (those that contain "VARSEQ")
-crude_vcf <- read.delim("data/alltimepoints_variants_20211021.vcf", skip = 13)
+crude_vcf <- read.delim("data/alltimepoints_consensus_variants_20211104.vcf", skip = 20)
 crude_vcf <- crude_vcf[grepl("VARSEQ",crude_vcf$INFO, fixed=T),] ; rownames(crude_vcf) <- NULL
 
 # creating new column for dates with only a sample ID in it (for the time being)
@@ -176,28 +184,30 @@ for (i in 1:length(crude_vcf$SAMPLE_ID)){
     add <- fasta_df[fasta_df$Sample_ID==j,"distance"] + 1
     fasta_df[fasta_df$Sample_ID==j,"distance"] <- add
   }
-} 
+}
 
 
 
-### PLOTTING ###
+### PLOTTING ####
+pdf(file = "/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/VOC_plot.pdf", 
+    width = 9, height = 5)
 plot(fasta_df$Date, fasta_df$distance, 
-     xlim = c(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date)+31), ylim = c(0,60),
+     xlim = c(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date)), ylim = c(0,60),
      xlab = "Date of Infection (Sept. 2020 - Sept. 2021)", ylab = "Genetic Distance from Wuhan-1", 
      frame.plot = F, cex.axis = 0.8, cex.lab = 0.85, las = 1, pch = 20, xaxt="n",
      cex = 3, col = "#4B7395", type = "n")
 grid()
 
-months_axis <- seq(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date)+31, by = "month")
+months_axis <- seq(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date), by = "month")
 axis(side = 1, at = months_axis,
      labels = format(months_axis, "%b"), cex.axis = 0.8)
 
 points(gisaid_fasta_df$date, gisaid_fasta_df$distance,
        pch = 20, cex = 1, col = gisaid_fasta_df$color)
 
-text(as.Date("2021-03-22"), 45, labels = "Bamlanivimab\nTreatment", cex = 0.8, bty = "l")
-segments(as.Date("2021-03-22"), y0 = -2, y1 = 42, col = "red", lty = 2)
-segments(as.Date("2021-03-22"), y0 = 48, y1 = 61, col = "red", lty = 2)
+text(as.Date("2021-03-22"), 55, labels = "Bamlanivimab\nTreatment", cex = 0.8, bty = "l")
+segments(as.Date("2021-03-22"), y0 = -2, y1 = 52, col = "red", lty = 2)
+segments(as.Date("2021-03-22"), y0 = 58, y1 = 61, col = "red", lty = 2)
 
 # abline(VOC_lm, col = rgb(165/255,15/255,21/255,3/4), lwd = 4)
 
@@ -207,4 +217,5 @@ points(fasta_df$Date, fasta_df$distance,
 legend("topleft", legend = c(lineages$label[1:5], "patient"),
        col = c(lineages$color[1:5], palette[11,1]), bty="n",
        pch = 16, ncol = 2, xpd = T, xjust = 0.5, cex = 0.9)
+dev.off()
 
