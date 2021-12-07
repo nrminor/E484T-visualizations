@@ -47,8 +47,18 @@ fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina",
 # timepoint5$DATE <- as.Date(fasta_df$Date[5])
 # colnames(timepoint5)[10] <- "Variants"
 # timepoint5 <- timepoint5[timepoint5$FILTER=="PASS",]
-# 
-# timepoint6 <- read.delim("data/all_timepoints_raw_reads/individual_USA_WI-UW-5350_2021_DHO_26076_ONT.vcf", skip = 55)
+
+# timepoint6_artic <- read.delim("data/all_timepoints_raw_reads/individual_USA_WI-UW-5350_2021_DHO_26076_ONT.vcf", skip = 55)
+# timepoint6_artic$DATE <- as.Date(fasta_df$Date[6])
+# colnames(timepoint6_artic)[10] <- "Variants"
+# timepoint6_artic <- timepoint6_artic[timepoint6_artic$FILTER=="PASS",]
+
+# timepoint6_midnight <- read.delim("data/june_timepoint_ARTICv3_vs_MIDNIGHT/junetimepoint_variants_midnight_20211124.vcf", skip = 55)
+# timepoint6_midnight$DATE <- as.Date(fasta_df$Date[6])
+# colnames(timepoint6_midnight)[10] <- "Variants"
+# timepoint6_midnight <- timepoint6_midnight[timepoint6_midnight$FILTER=="PASS",]
+
+# timepoint6 <- read.delim("data/june_timepoint_ARTICv3_vs_MIDNIGHT/junetimepoint_artic_midnight_cat_variants_20211129.vcf", skip = 55)
 # timepoint6$DATE <- as.Date(fasta_df$Date[6])
 # colnames(timepoint6)[10] <- "Variants"
 # timepoint6 <- timepoint6[timepoint6$FILTER=="PASS",]
@@ -65,7 +75,7 @@ fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina",
 # 
 # full_vcf <- rbind(timepoint1, timepoint2, timepoint3, timepoint4,
 #                   timepoint5, timepoint6, timepoint7, timepoint8)
-# 
+
 # full_vcf <- read.delim("data/all_timepoints_raw_reads/alltimepoints_variants_20211116.vcf", skip = 55)
 # full_vcf <- full_vcf[,c(1:9, 16, 14, 11, 12, 13, 15, 17, 10)]
 # colnames(full_vcf)[10:17] <- c("timepoint1", "timepoint2", "timepoint3", "timepoint4", "timepoint5", "timepoint6", "timepoint7", "timepoint8")
@@ -87,14 +97,29 @@ fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina",
 
 
 
+### REPEATING THE ABOVE FOR THE MIDNIGHT JUNE TIME POINT
+# timepoint6_midnight <- timepoint6_midnight[grepl("AF",timepoint6_midnight$INFO, fixed=T),] ; rownames(timepoint6_midnight) <- NULL
+# 
+# for (i in 1:nrow(timepoint6_midnight)){
+#   print(paste("processing row", i, sep = " "))
+#   info <- timepoint6_midnight[i, "INFO"]
+#   info_split <- unlist(strsplit(info, split = ";"))
+#   timepoint6_midnight[i, "DEPTH"] <- info_split[grep("^DP", info_split)]
+#   timepoint6_midnight[i, "FREQ"] <- info_split[grep("^AF", info_split)]
+# }
+# timepoint6_midnight$DEPTH <- as.numeric(str_replace_all(timepoint6_midnight$DEPTH, "DP=", ""))
+# timepoint6_midnight$FREQ <- as.numeric(str_replace_all(timepoint6_midnight$FREQ, "AF=", ""))
+
+
+
 ### IDENTIFYING ALL UNIQUE REF_POS_ALT ####
 # (INCLUDING CASES WHERE THERE IS MORE THAN ONE MUTATION AT THE SAME POSITION)
 # ALSO TRIMMING OUT NOW-IRRELEVANT STUFF FROM VECTOR MEMORY
 # full_vcf$REF_POS_ALT <- paste(full_vcf$REF, full_vcf$POS, full_vcf$ALT, sep = "-")
-
-# write_csv(full_vcf, "data/all_timepoints_raw_reads/alltimepoints_reduced_VCF_20211117.csv",
-#           quote=F)
-full_vcf <- read.csv("data/all_timepoints_raw_reads/alltimepoints_reduced_VCF_20211117.csv")
+# 
+# write_csv(full_vcf, "data/all_timepoints_raw_reads/alltimepoints_reduced_VCF_20211130.csv",
+# quote=F, row.names=F)
+full_vcf <- read.csv("data/all_timepoints_raw_reads/alltimepoints_reduced_VCF_20211130.csv")
 str(full_vcf)
 full_vcf$DATE <- as.Date(full_vcf$DATE)
 
@@ -103,10 +128,11 @@ full_vcf$DATE <- as.Date(full_vcf$DATE)
 # mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
 # 
 # mutations$SEQ_PLATFORM <- fasta_df$seq_platform[match(mutations$DATE, fasta_df$Date)]
-# write_csv(mutations, "data/all_timepoints_raw_reads/alltimepoints_mutations_20211117.csv",
-          # quote=F)
-mutations <- read.csv("/Volumes/working_ssd/e484t_manuscript/data/all_timepoints_raw_reads/alltimepoints_mutations_20211117.csv")
-mutations$DATE <- as.Date(mutations$DATE, format = "%m/%d/%y")
+# write_csv(mutations, "data/all_timepoints_raw_reads/alltimepoints_mutations_20211130.csv",
+#           quote=F)
+mutations <- read.csv("/Volumes/working_ssd/e484t_manuscript/data/all_timepoints_raw_reads/alltimepoints_mutations_20211130.csv")
+str(mutations)
+mutations$DATE <- as.Date(mutations$DATE, format = "%Y-%m-%d")
 mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
 mutations_raw <- mutations
 E484A <- mutations[mutations$POS==23013,] ; E484A$FREQ <- as.numeric(E484A$FREQ) ; E484A$DEPTH <- as.numeric(E484A$DEPTH)
@@ -114,20 +140,34 @@ E484T <- mutations[mutations$POS==23012,] ; E484T$FREQ <- as.numeric(E484T$FREQ)
 
 
 
+### REPEATING THE ABOVE FOR MIDNIGHT JUNE TIME POINT ####
+# timepoint6_midnight$REF_POS_ALT <- paste(timepoint6_midnight$REF, timepoint6_midnight$POS, timepoint6_midnight$ALT, sep = "-")
+# 
+# midnight_june_mutations <- timepoint6_midnight[,c("POS", "REF_POS_ALT", "DATE", "FREQ", "DEPTH")]
+# remove(timepoint6_midnight) ; remove(timepoint1) ; remove(timepoint2) ; remove(timepoint3) ; remove(timepoint4) ; remove(timepoint5) ; remove(timepoint6) ; remove(timepoint7) ; remove(timepoint8)
+# midnight_june_mutations <- midnight_june_mutations[order(midnight_june_mutations$POS),] ; rownames(midnight_june_mutations) <- NULL
+# 
+# midnight_june_mutations$SEQ_PLATFORM <- fasta_df$seq_platform[match(midnight_june_mutations$DATE, fasta_df$Date)]
+# 
+# midnight_june_mutations <- midnight_june_mutations[order(midnight_june_mutations$POS),] ; rownames(midnight_june_mutations) <- NULL
+# midnight_june_mutations_raw <- midnight_june_mutations
+
+
+
 ### CONSENSUS MUTATIONS ####
 # consensus_mutations <- mutations_raw
 # for (i in unique(consensus_mutations$REF_POS_ALT)){
 #   mut_sub <- consensus_mutations[consensus_mutations$REF_POS_ALT==i,]
-#   
+# 
 #   if (max(mut_sub$FREQ)<0.5) {
 #     consensus_mutations <- consensus_mutations[!consensus_mutations$REF_POS_ALT==i,]
-#     
+# 
 #   } else {
 #     next
 #   }
 #   rownames(consensus_mutations) <- NULL
 # }
-# write_csv(consensus_mutations, "data/all_timepoints_raw_reads/consensus_mutations_20211122.csv", quote=F)
+# write_csv(consensus_mutations, "data/all_timepoints_raw_reads/consensus_mutations_20211122.csv", quote=F, row.names = F)
 consensus_mutations <- read.csv("data/all_timepoints_raw_reads/consensus_mutations_20211122.csv")
 
 
@@ -146,7 +186,7 @@ consensus_mutations <- read.csv("data/all_timepoints_raw_reads/consensus_mutatio
 #   sub <- mutations[i,"REF_POS_ALT"]
 #   sub_split <- unlist(strsplit(sub, split = "-"))
 #   print(paste("processing row", i, sep = " "))
-#   
+# 
 #   if (nchar(sub_split[3])==1 & nchar(sub_split[1])==1){
 #     mutations$KEEP[i] <- TRUE
 #   } else {
@@ -159,12 +199,14 @@ consensus_mutations <- read.csv("data/all_timepoints_raw_reads/consensus_mutatio
 # mutations$KEEP <- (mutations$FREQ*mutations$DEPTH)>10 # this filters to only mutations supported by 10 or more reads
 # mutations <- mutations[mutations$KEEP==T,]
 # mutations <- mutations[,-ncol(mutations)]
-# rownames(mutations) <- NULL
-
-# write_csv(mutations, "data/all_timepoints_raw_reads/alltimepoints_filtered_mutations_20211117.csv",
-          # quote=F)
+# rownames(mutations) <- NULL'
+# 
+# write_csv(mutations, "data/all_timepoints_raw_reads/alltimepoints_filtered_mutations_20211130.csv",
+# quote=F)
 mutations <- read.csv("data/all_timepoints_raw_reads/alltimepoints_filtered_mutations_20211117.csv")
-
+str(mutations)
+mutations$DATE <- as.Date(mutations$DATE, format = "%Y-%m-%d")
+mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
 
 
 ### CREATING AUXILIARY DATASETS ####
@@ -218,19 +260,25 @@ for (i in unique(decreases$REF_POS_ALT)){
 
 E484A_prefilter <- E484A
 E484A <- mutations[mutations$POS==23013,]
-E484A <- rbind(E484A, E484A_prefilter[E484A_prefilter$SEQ_PLATFORM=="Illumina",])
+E484A <- E484A[E484A$REF_POS_ALT=="A-23013-C",]
+# E484A <- rbind(E484A, E484A_prefilter[E484A_prefilter$SEQ_PLATFORM=="Illumina",])
+# E484A <- rbind(E484A, E484A_prefilter[E484A_prefilter$DATE==fasta_df$Date[2] & E484A_prefilter$REF_POS_ALT=="A-23013-C",])
 E484A <- E484A[order(E484A$DATE),] ; rownames(E484A) <- NULL
 
 E484T_prefilter <- E484T
 E484T <- mutations[mutations$POS==23012,]
+E484T <- E484T[E484T$REF_POS_ALT=="G-23012-A",]
+
+# E484T <- rbind(E484T, E484T_prefilter[E484T_prefilter$SEQ_PLATFORM=="IonTorrent" & E484T_prefilter$REF_POS_ALT=="G-23012-A",])
+E484T <- E484T[order(E484T$DATE),] ; rownames(E484T) <- NULL
 
 big_change <- mutations
 for (i in unique(big_change$REF_POS_ALT)){
   mut_sub <- big_change[big_change$REF_POS_ALT==i,]
-  
+
   if (max(mut_sub$FREQ)<0.5) {
     big_change <- big_change[!big_change$REF_POS_ALT==i,]
-    
+
   } else {
     next
   }
@@ -240,14 +288,14 @@ for (i in unique(big_change$REF_POS_ALT)){
 # consensus_by_june <- consensus_mutations
 # for (i in unique(consensus_by_june$REF_POS_ALT)){
 #   print(paste("processing mutation", i, sep = " "))
-#   
+# 
 #   mut_sub <- consensus_by_june[consensus_by_june$REF_POS_ALT==i,]
-#   
+# 
 #   if (
 #     !(as.Date("2021-06-29") %in% mut_sub$DATE)
 #   ) {
 #     consensus_by_june <- consensus_by_june[!consensus_by_june$REF_POS_ALT==i,]
-#     
+# 
 #   } else {
 #     next
 #   }
@@ -255,9 +303,9 @@ for (i in unique(big_change$REF_POS_ALT)){
 # }
 # for (i in unique(consensus_by_june$REF_POS_ALT)){
 #   print(paste("processing mutation", i, sep = " "))
-#   
+# 
 #   mut_sub <- consensus_by_june[consensus_by_june$REF_POS_ALT==i,]
-#   
+# 
 #   if (
 #     !(as.Date("2021-03-22") %in% mut_sub$DATE) |
 #     !(as.Date("2021-02-11") %in% mut_sub$DATE) |
@@ -266,7 +314,7 @@ for (i in unique(big_change$REF_POS_ALT)){
 #     !(as.Date("2020-12-27") %in% mut_sub$DATE)
 #   ) {
 #     consensus_by_june <- consensus_by_june[!consensus_by_june$REF_POS_ALT==i,]
-#     
+# 
 #   } else {
 #     next
 #   }
@@ -275,23 +323,48 @@ for (i in unique(big_change$REF_POS_ALT)){
 # consensus_by_june_step2 <- consensus_by_june
 # for (i in unique(consensus_by_june$REF_POS_ALT)){
 #   print(paste("processing mutation", i, sep = " "))
-#   
+# 
 #   mut_sub <- consensus_by_june[consensus_by_june$REF_POS_ALT==i,]
-#   
+# 
 #   if (
 #     mut_sub[mut_sub$DATE==as.Date("2021-06-29"), "FREQ"] < 0.5 |
 #     T %in% (mut_sub[mut_sub$DATE < as.Date("2021-06-29"), "FREQ"] >= 0.5)
 #       ) {
 #     consensus_by_june <- consensus_by_june[!consensus_by_june$REF_POS_ALT==i,]
-#     
+# 
 #   } else {
 #     next
 #   }
 #   rownames(consensus_by_june) <- NULL
 # }
-# E484T_allpoints <- consensus_by_june[consensus_by_june$POS==23012,]
-# write.csv(consensus_by_june, "data/all_timepoints_raw_reads/consensus_by_june_variants_20211122.csv", quote = F)
+# 
+# write.csv(consensus_by_june, "data/all_timepoints_raw_reads/consensus_by_june_variants_20211122.csv", quote = F, row.names = F)
 consensus_by_june <- read.csv("data/all_timepoints_raw_reads/consensus_by_june_variants_20211122.csv")
+consensus_by_june$DATE <- as.Date(consensus_by_june$DATE, format = "%Y-%m-%d")
+E484T_allpoints <- consensus_by_june[consensus_by_june$POS==23012,]
+
+
+
+### FILTERING DOWN TO THE SAME MUTATIONS IN THE MIDNIGHT JUNE TIME POINT ####
+# june_ARTIC_iSNVs <- consensus_by_june[consensus_by_june$DATE==as.Date("2021-06-29"),]
+# june_ARTIC_iSNVs <- rbind(june_ARTIC_iSNVs, E484A[E484A$DATE==as.Date("2021-06-29"), -c(7:8)])
+# june_ARTIC_iSNVs <- june_ARTIC_iSNVs[order(june_ARTIC_iSNVs$POS),] ; rownames(june_ARTIC_iSNVs) <- NULL
+# 
+# june_midnight_iSNVs <- midnight_june_mutations[match(june_iSNVs$REF_POS_ALT, midnight_june_mutations$REF_POS_ALT),]
+# june_midnight_iSNVs <- rbind(june_midnight_iSNVs, midnight_june_mutations[midnight_june_mutations$REF_POS_ALT=="A-23013-C",])
+# june_midnight_iSNVs <- june_midnight_iSNVs[order(june_midnight_iSNVs$POS),] ; rownames(june_midnight_iSNVs) <- NULL; rownames(june_midnight_iSNVs) <- NULL
+# 
+# platform_comparison <- june_ARTIC_iSNVs
+# colnames(platform_comparison)[4] <- "ARTICv3_FREQ"
+# colnames(platform_comparison)[5] <- "ARTICv3_DEPTH"
+# 
+# platform_comparison <- platform_comparison[,c(1,2,3,6,4,5)]
+# 
+# platform_comparison$ARTICv3_FREQ <- round(platform_comparison$ARTICv3_FREQ, digits = 3)
+# platform_comparison$MIDNIGHT_FREQ <- round(june_midnight_iSNVs$FREQ, digits = 3)
+# platform_comparison$MIDNIGHT_DEPTH <- june_midnight_iSNVs$DEPTH
+# 
+# write.csv(platform_comparison, "data/june_timepoint_ARTICv3_vs_MIDNIGHT/midnight_vs_artic_comparison_june_timepoint.csv", quote = F, row.names = F)
 
 
 
@@ -327,6 +400,9 @@ for (i in 1:nrow(E484T)){
 
 
 ### PLOTTING LOOPS ####
+# svg("visuals/Ct_values_treatments.svg")
+pdf(file = "/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/allele_frequency.pdf", 
+    width = 8, height = 5)
 # setting the plot frame and grid
 plot(mutations$DATE, mutations$FREQ,
      xlim = c(min(mutations$DATE), max(mutations$DATE)),
@@ -341,22 +417,6 @@ months_axis <- seq(min(mutations$DATE), max(mutations$DATE), by = "month")
 axis(side = 1, at = months_axis,
      labels = format(months_axis, "%b"), cex.axis = 0.8)
 
-# # plotting mutation points and lines
-# for (i in unique(mutations$REF_POS_ALT)){
-#   mut_sub <- mutations[mutations$REF_POS_ALT==i,]
-#   
-#   lines(mut_sub$DATE, mut_sub$FREQ, col="gray")
-#   points(mut_sub$DATE, mut_sub$FREQ, pch = 20, col = "darkgray", cex = 0.8)
-# }
-# 
-# # plotting mutations with big changes
-# for (i in unique(big_change$REF_POS_ALT)){
-#   mut_sub <- big_change[big_change$REF_POS_ALT==i,]
-#   
-#   lines(mut_sub$DATE, mut_sub$FREQ, col="gray")
-#   points(mut_sub$DATE, mut_sub$FREQ, pch = 20, col = "darkgray", cex = 0.8)
-# }
-
 # plotting mutations that increase to consensus frequency (50% or higher) at the June time point
 for (i in unique(consensus_by_june$REF_POS_ALT)){
   mut_sub <- consensus_by_june[consensus_by_june$REF_POS_ALT==i,]
@@ -365,64 +425,31 @@ for (i in unique(consensus_by_june$REF_POS_ALT)){
   points(mut_sub$DATE, mut_sub$FREQ, pch = 20, col = "darkgray", cex = 0.8)
 }
 
-# plotting mutation confidence intervals
-# for (i in 1:nrow(mutations)){
-#   mut_sub <- mutations[i,]
-#   lines(x = rep(mut_sub$DATE, times = 2),
-#         y = c(mut_sub$UPPER, mut_sub$LOWER),
-#         col="darkgray")
-#   lines(x=c(mut_sub$DATE-1, mut_sub$DATE+1),
-#         y=rep(mut_sub$UPPER, times = 2), col="darkgray")
-#   lines(x=c(mut_sub$DATE-1, mut_sub$DATE+1),
-#         y=rep(mut_sub$LOWER, times = 2), col="darkgray")
-# }
+E484A_plotting <- E484A
+E484A_plotting$FREQ[6:7] <- E484A_plotting$FREQ[6:7] - E484T[E484T$DATE==as.Date("2021-06-29") | E484T$DATE==as.Date("2021-08-04"),
+                                                             "FREQ"]
 
 # plotting E484A with confidence intervals
-lines(E484A$DATE, E484A$FREQ, col="orange", lwd = 2)
-points(E484A$DATE, E484A$FREQ, pch = 20, col = "orange", cex = 1.5)
-
-# for (i in 1:nrow(E484A)){
-#   mut_sub <- E484A[i,]
-#   lines(x = rep(mut_sub$DATE, times = 2),
-#         y = c(mut_sub$UPPER, mut_sub$LOWER),
-#         col="orange", lwd = 2)
-#   lines(x=c(mut_sub$DATE-2, mut_sub$DATE+2),
-#         y=rep(mut_sub$UPPER, times = 2), col="orange", lwd = 2)
-#   lines(x=c(mut_sub$DATE-2, mut_sub$DATE+2),
-#         y=rep(mut_sub$LOWER, times = 2), col="orange", lwd = 2)
-# }
+lines(E484A_plotting$DATE, E484A_plotting$FREQ, col="#213CAD", lwd = 2.5)
+points(E484A_plotting$DATE, E484A_plotting$FREQ, pch = 20, col = "#213CAD", cex = 2)
 
 # plotting E484T with confidence intervals
-lines(E484T_allpoints$DATE, E484T_allpoints$FREQ, col="red", lwd = 2)
-points(E484T_allpoints$DATE, E484T_allpoints$FREQ, pch = 20, col = "red", cex = 1.5)
-
-# for (i in 1:nrow(E484T)){
-#   mut_sub <- E484T[i,]
-#   lines(x = rep(mut_sub$DATE, times = 2),
-#         y = c(mut_sub$UPPER, mut_sub$LOWER),
-#         col="red", lwd = 2)
-#   lines(x=c(mut_sub$DATE-2, mut_sub$DATE+2),
-#         y=rep(mut_sub$UPPER, times = 2), col="red", lwd = 2)
-#   lines(x=c(mut_sub$DATE-2, mut_sub$DATE+2),
-#         y=rep(mut_sub$LOWER, times = 2), col="red", lwd = 2)
-# }
-
-# legend(as.Date("2021-05-15"), 1.05, legend=c("A-23013-C", "G-23012-A", "Present at all time points"),
-#        lwd = c(4, 3, 1.5),
-#        col = c("orange", "red", "black"),
-#        bty = "n", cex = 0.8, bg="transparent", ncol = 3, xpd = T,
+lines(E484T_allpoints$DATE, E484T_allpoints$FREQ, col="#FEB815", lwd = 2.5)
+points(E484T_allpoints$DATE, E484T_allpoints$FREQ, pch = 20, col = "#FEB815", cex = 2)
 #        xjust = 0.5, yjust = 0)
 abline(h=0.1, lty = 4)
 abline(h=0.03, lty = 3)
 abline(h=0.5, lty = 5)
 
 
-legend(min(fasta_df$Date), 1.05, 
+legend(median(fasta_df$Date), 1.05, 
        legend=c("E484A", "E484T", "10 iSNVs more frequent in June",
                 "ONT frequency cutoff", "Illumina frequency cutoff",
                 "consensus frequency cutoff"),
        lwd = c(NA, NA, NA, 1, 1, 1), lty = c(NA, NA, NA,4,3,5),
        pch = c(20, 20, 20, NA, NA, NA),
-       col = c("orange", "red", "gray", "black", "black", "black"),
+       col = c("#213CAD", "#FEB815", "gray", "black", "black", "black"),
        bty = "n", cex = 0.8, bg="transparent", ncol = 2, xpd = T,
        xjust = 0, yjust = 0)
+dev.off()
+

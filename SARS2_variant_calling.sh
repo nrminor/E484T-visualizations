@@ -138,13 +138,12 @@ done
 bbmap=/Users/nicholasminor/bbmap
 data=/Volumes/working_ssd/e484t_manuscript/data/all_timepoints_raw_reads
 bamlist=$data/bam-list
-ref=$data/NC_045512.2.fasta
 DATE=$(date +'%Y%m%d')
 
 cd $data
 $bbmap/callvariants.sh list=$bamlist out=$data/alltimepoints_variants_${DATE}.vcf \
-ref=$ref samstreamer=t ss=4 clearfilters multisample=t \
-ploidy=1 minreads=1 mincov=0 overwrite=t
+ref=$REF samstreamer=t ss=4 clearfilters multisample=t \
+ploidy=1 mincov=0 overwrite=t
 
 gunzip individual*.vcf.gz
 
