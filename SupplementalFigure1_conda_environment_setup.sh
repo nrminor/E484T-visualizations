@@ -10,6 +10,7 @@ conda install -c bioconda vcftools
 conda install -c bioconda bcftools
 conda install -c bioconda vcflib
 conda install -c bioconda samtools
+conda install -c bioconda sambamba
 conda install -c bioconda bwa
 conda install -c bioconda minimap2
 conda install -c bioconda hisat2

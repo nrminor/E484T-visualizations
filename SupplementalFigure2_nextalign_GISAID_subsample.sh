@@ -4,4 +4,4 @@ output="data/b12_enriched_global"
 prefix="b12_enriched_global"
 
 cd $WD
-software/nextalign --sequences $input --reference data/ref/reference.fasta --output-basename $prefix --include-reference -d $output
+software/nextalign --sequences $input --reference data/reference.fasta --output-basename $prefix --include-reference -d $output
