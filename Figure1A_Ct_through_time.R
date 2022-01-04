@@ -15,7 +15,7 @@
 ### --------------------------------------------- #
 library(ggplot2)
 
-data_filepath = "/Volumes/working_ssd/e484t_manuscript/"
+data_filepath = ""  ### INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 Ct <- read.csv("data/Ct_timeline.csv")
 Ct$Encounter.date <- as.Date(Ct$Encounter.date, format = "%m/%d/%y")

@@ -1,8 +1,9 @@
 visuals/
 data/
+data_for_github/
 .Rproj.user/
 deprecated/
-software/
+
 
 E484T_paper.Rproj
 .DS_Store
