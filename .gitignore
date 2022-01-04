@@ -1,6 +1,8 @@
 visuals/
 data/
 .Rproj.user/
+deprecated/
+software/
 
 E484T_paper.Rproj
 .DS_Store

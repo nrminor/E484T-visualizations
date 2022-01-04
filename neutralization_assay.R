@@ -13,21 +13,21 @@ setwd(data_filepath)
 
 # FASTA PREP ####
 patient_fasta <- readDNAStringSet("data/alltimepoints_20211104.fasta")
-seq_names = names(patient_fasta)
-sequence = paste(patient_fasta)
-fasta_df <- data.frame(seq_names, sequence)
+seq_names <- names(patient_fasta)
+fasta_df <- data.frame(seq_names) ; remove(patient_fasta)
 fasta_df$seq_names <- str_replace_all(fasta_df$seq_names, fixed(" | "), ",")
 fasta_df <- separate(data = fasta_df, col = 1,
                      into = c("Sample_ID", "Date"),
                      sep = ",")
 fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
 fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388)
+fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina", "IonTorrent")
 
 
 
 # ANTIBODY DATA ####
 antibody <- read.csv("data/antibody_potency.csv")
-antibody$Chronic[1] <- 2.5
+
 
 
 # PLOTTING ###

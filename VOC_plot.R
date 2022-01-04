@@ -191,31 +191,31 @@ for (i in 1:length(crude_vcf$SAMPLE_ID)){
 ### PLOTTING ####
 pdf(file = "/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/VOC_plot.pdf", 
     width = 9, height = 5)
-plot(fasta_df$Date, fasta_df$distance, 
-     xlim = c(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date)), ylim = c(0,60),
-     xlab = "Date of Infection (Sept. 2020 - Sept. 2021)", ylab = "Genetic Distance from Wuhan-1", 
-     frame.plot = F, cex.axis = 0.8, cex.lab = 0.85, las = 1, pch = 20, xaxt="n",
+plot(fasta_df$day_of_infection, fasta_df$distance, 
+     xlim = c(min(gisaid_fasta_df$day_of_infection), max(gisaid_fasta_df$day_of_infection)), ylim = c(0,60),
+     xlab = "Day of Infection", ylab = "Genetic Distance from Wuhan-1", 
+     frame.plot = F, cex.axis = 0.8, cex.lab = 0.85, las = 1, pch = 20,
      cex = 3, col = "#4B7395", type = "n")
 grid()
+# 
+# months_axis <- seq(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date), by = "month")
+# axis(side = 1, at = months_axis,
+#      labels = format(months_axis, "%b"), cex.axis = 0.8)
 
-months_axis <- seq(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date), by = "month")
-axis(side = 1, at = months_axis,
-     labels = format(months_axis, "%b"), cex.axis = 0.8)
-
-points(gisaid_fasta_df$date, gisaid_fasta_df$distance,
+points(gisaid_fasta_df$day_of_infection, gisaid_fasta_df$distance,
        pch = 20, cex = 1, col = gisaid_fasta_df$color)
 
-text(as.Date("2021-03-22"), 55, labels = "Bamlanivimab\nTreatment", cex = 0.8, bty = "l")
-segments(as.Date("2021-03-22"), y0 = -2, y1 = 52, col = "red", lty = 2)
-segments(as.Date("2021-03-22"), y0 = 58, y1 = 61, col = "red", lty = 2)
+text(198, 55, labels = "Bamlanivimab\nTreatment", cex = 0.8, bty = "l")
+segments(198, y0 = -2, y1 = 52, col = "red", lty = 2)
+segments(198, y0 = 58, y1 = 61, col = "red", lty = 2)
 
 # abline(VOC_lm, col = rgb(165/255,15/255,21/255,3/4), lwd = 4)
 
-points(fasta_df$Date, fasta_df$distance,
+points(fasta_df$day_of_infection, fasta_df$distance,
        pch = 20, cex = 2, col = palette[11,1])
 # abline(patient_lm, col = rgb(8/255,81/255,156/255,3/4), lwd = 4)
 legend("topleft", legend = c(lineages$label[1:5], "patient"),
        col = c(lineages$color[1:5], palette[11,1]), bty="n",
-       pch = 16, ncol = 2, xpd = T, xjust = 0.5, cex = 0.9)
+       pch = 16, ncol = 2, xpd = T, xjust = 0.5, cex = 1)
 dev.off()
 

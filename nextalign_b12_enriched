@@ -1,4 +1,0 @@
-WD="/Users/nicholasminor/Documents/informatics/E484T_paper" ; input="/Volumes/working_ssd/e484t_manuscript/data/b112_enriched_subsampled_sequences.fasta" ; output="/Volumes/working_ssd/e484t_manuscript/data"
-
-cd $WD
-software/nextalign --sequences $input --reference data/ref/reference.fasta --output-basename b12_enriched --include-reference -d $output

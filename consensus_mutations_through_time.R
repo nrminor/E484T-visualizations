@@ -11,15 +11,15 @@ setwd(data_filepath)
 
 # FASTA PREP ####
 patient_fasta <- readDNAStringSet("data/alltimepoints_20211104.fasta")
-seq_names = names(patient_fasta)
-sequence = paste(patient_fasta)
-fasta_df <- data.frame(seq_names, sequence)
+seq_names <- names(patient_fasta)
+fasta_df <- data.frame(seq_names) ; remove(patient_fasta)
 fasta_df$seq_names <- str_replace_all(fasta_df$seq_names, fixed(" | "), ",")
 fasta_df <- separate(data = fasta_df, col = 1,
                      into = c("Sample_ID", "Date"),
                      sep = ",")
 fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
 fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388)
+fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina", "IonTorrent")
 
 
 
@@ -52,7 +52,7 @@ for (i in 1:nrow(crude_vcf)){
   crude_vcf[i,"DATES_DETECTED"] <- as.character(dates_ordered)
 }
 
-# creating a column with all *days* (note dates) of detection, from the patient's first day of infection
+# creating a column with all *days* (not dates) of detection, from the patient's first day of infection
 for (i in 1:nrow(crude_vcf)){
   info <- crude_vcf[i, "INFO"]
   info_split <- unlist(strsplit(info, split = ";"))
@@ -67,7 +67,7 @@ for (i in 1:nrow(crude_vcf)){
   samples_ordered <- samples[match(fasta_df$Sample_ID, samples)]
   samples_ordered <- as.character(na.omit(samples_ordered))
   days_ordered <- samples_ordered
-  ref <- fasta_df[match(days_ordered, fasta_df$Sample_ID),c(1,4)]
+  ref <- fasta_df[match(days_ordered, fasta_df$Sample_ID),c("Sample_ID","day_of_infection")]
   for (j in 1:length(days_ordered)){ 
     days_ordered[j] <- as.character(ref[j, "day_of_infection"])
   }
@@ -167,24 +167,18 @@ remove(lowcov_20201227_ONT, lowcov_20210107_ONT, lowcov_20210114_ONT, lowcov_202
 
 # VERTICAL PLOT ####
 pdf("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/mutations_across_genome_vertical.pdf",
-    width = 8, height = 7)
-# vertical_mut_plot <- function(){
-  
-  plot(1,1, ylim = c(0,30000), xlim=c(-15, 400), type = "n",
+    width = 8, height = 5)
+
+  plot(1,1, ylim = c(0,30000), xlim=c(-15, 450), type = "n",
       ylab = "SARS-CoV-2 Genome Position", xlab = "Day of Infection", 
       frame.plot = F, cex.axis = 1, yaxt = "n")
   axis(side = 2, at = c(0,5000,10000,15000,20000,25000,30000), cex.axis = 0.8,
        col = "white", col.ticks = "black", las = 1)
-  # segments(y0=SARS_genes$stop, 
-  #          x0 = rep(-10, times = length(SARS_genes$stop)),
-  #          x1 = rep(400, times = length(SARS_genes$stop)),
-  #          col = "lightgrey")
-  # segments(y0 = SARS_genes$start[1], x0 = -10, x1 = 400, col = "lightgrey")
   
   for (i in 1:nrow(SARS_genes)){
     polygon(y = c(SARS_genes[i,"start"], SARS_genes[i,"start"], 
-                  SARS_genes[i,"stop"], SARS_genes[i,"stop"]),  # coordinates of gene 
-            x = c(-30, 0, 0, -30),    # Y-Coordinates of polygon
+                  SARS_genes[i,"stop"], SARS_genes[i,"stop"]),  # y-coordinates of gene 
+            x = c(-30, 0, 0, -30),    # x-Coordinates of polygon
             col = SARS_genes[i,"col"], border = F, xpd = T)
     text(y = SARS_genes[i,"start"] + (SARS_genes[i,"stop"]-SARS_genes[i,"start"])/2, 
          x = -15, labels = SARS_genes[i, "name"], srt = 90, col = "black", cex = 1)
@@ -198,7 +192,7 @@ pdf("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/mutations_ac
     
     polygon(y = c(SARS_genes[i,"start"], SARS_genes[i,"start"], 
                   SARS_genes[i,"stop"], SARS_genes[i,"stop"]),  # coordinates of gene 
-            x = c(0, 400, 400, 0),    # Y-Coordinates of polygon
+            x = c(0, 417, 417, 0),    # Y-Coordinates of polygon
             col = col_tmp, border = F)
   }
 
@@ -211,29 +205,6 @@ pdf("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/mutations_ac
             col = "white", border = F)
     
   }
-  
-  # for (i in 1:nrow(lowcov)){
-  # 
-  #   if (lowcov$day_of_infection[i] == min(lowcov$day_of_infection)){
-  # 
-  #   polygon(y = c(lowcov[i,"Minimum"], lowcov[i,"Minimum"],
-  #                 lowcov[i,"Maximum"], lowcov[i,"Maximum"]),  # coordinates of low cov region
-  #           x = c(0, lowcov[i, "day_of_infection"]+10,
-  #                 lowcov[i, "day_of_infection"]+10, 0),    # X-Coordinates of polygon
-  #           col = "white", border = F)
-  # 
-  #   } else {
-  # 
-  #     polygon(y = c(lowcov[i,"Minimum"], lowcov[i,"Minimum"],
-  #                   lowcov[i,"Maximum"], lowcov[i,"Maximum"]),  # coordinates of low cov region
-  #             x = c(unique(lowcov$day_of_infection)[which(unique(lowcov$day_of_infection)==lowcov[i, "day_of_infection"])-1],
-  #                   lowcov[i, "day_of_infection"]+10,
-  #                   lowcov[i, "day_of_infection"]+10,
-  #                   unique(lowcov$day_of_infection)[which(unique(lowcov$day_of_infection)==lowcov[i, "day_of_infection"])-1]),    # X-Coordinates of polygon
-  #             col = "white", border = F)
-  # 
-  #   }
-  # }
   
   for (i in 1:length(mut_list2)){
     plotting_data <- data.frame("Day" = mut_list2[[i]],
@@ -274,9 +245,9 @@ pdf("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/mutations_ac
   }
   
   points(y = 23012, x = crude_vcf[crude_vcf$POS==23012,"EARLIEST_DAY"], 
-         pch = 16, cex = 1.5, col = "red")
+         pch = 2, cex = 1.5, col = "red")
   points(y = 23012, x = 333, 
-         pch = 16, cex = 1.5, col = "red")
+         pch = 2, cex = 1.5, col = "red")
   
   text(y = 23700, x = 316, labels = "E484T", col = "#7e7e7e", cex = 1)
   
@@ -287,137 +258,3 @@ pdf("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/mutations_ac
   #        xjust = 0.5, yjust = 0)
 # }
 dev.off()
-
-
-### PLOTTING ####
-# vertical plot
-# pdf("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/mutations_across_genome_vertical.pdf",
-#     width = 8, height = 6)
-# vertical_mut_plot()
-# dev.off()
-# 
-# ### GOOD JOB! ####
-# paste("good job!")
-# 
-# 
-# ### OTHER PLOT FORMATS - deprecated ####
-# ### HORIZONTAL PLOT ####
-# horiz_mut_plot <- function(){plot(1,1, xlim = c(0,30000), ylim=c(0, 400), type = "n",
-#                                   xlab = "SARS-CoV-2 Genome Position", ylab = "Day of Infection", 
-#                                   frame.plot = F, cex.axis = 1, las = 1, xaxt = "n")
-#   axis(side = 1, at = c(0,5000,10000,15000,20000,25000,30000), cex.axis = 1,
-#        col = "white", col.ticks = "black")
-#   segments(x0=SARS_genes$stop, 
-#            y0 = rep(-10, times = length(SARS_genes$stop)),
-#            y1 = rep(400, times = length(SARS_genes$stop)),
-#            col = "lightgrey")
-#   segments(x0 = SARS_genes$start[1], y0 = -10, y1 = 400, col = "lightgrey")
-#   
-#   for (i in 1:nrow(SARS_genes)){
-#     polygon(x = c(SARS_genes[i,"start"], SARS_genes[i,"start"], 
-#                   SARS_genes[i,"stop"], SARS_genes[i,"stop"]),  # coordinates of gene 
-#             y = c(-9.5, 20, 20, -9.5),    # Y-Coordinates of polygon
-#             col = SARS_genes[i,"col"], border = F)
-#     text(x = SARS_genes[i,"start"] + (SARS_genes[i,"stop"]-SARS_genes[i,"start"])/2, 
-#          y = (20--9.5)/4, labels = SARS_genes[i, "name"], col = "black", cex = 1)
-#   }
-#   
-#   for (i in 1:length(mut_list2)){
-#     plotting_data <- data.frame("Date" = mut_list2[[i]],
-#                                 "Coordinate" = rep(as.numeric(names(mut_list2)[i]), times = length(mut_list2[[i]])))
-#     points(x = plotting_data$Coordinate, plotting_data$Date, type = "p", pch = 20, col = "#e5e5e5")
-#   }
-#   
-#   fixed <- rep(NA, times = length(mut_list2))
-#   for (i in 1:length(fixed)){
-#     fixed[i] <- length(mut_list2[[i]])==8
-#   }
-#   
-#   segments(x0 = -1200, x1 = 29800, y0=198, col = "red")
-#   # text(x = 29500, y = 210, labels = "Bamlanivumab administered", cex = 1, las = 3)
-#   for (i in crude_vcf[!fixed, "POS"]){
-#     days <- unlist(mut_list2[as.numeric(names(mut_list2))==i])
-#     days <- as.data.frame(days)
-#     coordinates <- rep(as.numeric(names(mut_list2[as.numeric(names(mut_list2))==i])),
-#                        times = length(days$days))
-#     points(x = coordinates, y = days$days, pch = 16, col = "#7e7e7e", cex = 1.2)
-#   }
-#   points(23012, crude_vcf[crude_vcf$POS==23012,"EARLIEST_DAY"], 
-#          pch = 1, cex = 2, col = "gold")
-#   points(x = 23012, y = 333, 
-#          pch = 1, cex = 2, col = "gold")
-#   text(23000, 320, labels = "E484T", col = "#7e7e7e", cex = 1)
-#   
-#   legend(15000,420, legend=c("fixed mutation", "novel mutation", "mAb treatment"), 
-#          pch = c(20, 16, NA), lty = c(NA, NA, 1),
-#          col = c("#e5e5e5", "#7e7e7e", "red"),
-#          bty = "n", cex = 1, bg="transparent", ncol = 3, xpd = T, 
-#          xjust = 0.5, yjust = 0)
-# }
-# 
-# # FLIPPED VERTICAL PLOT WITH BIGGER FONTS ####
-# flipped_mut_plot <- function(){plot(1,1, xlim = c(0,30000), ylim=c(400, 0), type = "n",
-#                                     ylab = "Day of Infection", xlab='',
-#                                     frame.plot = F, cex.axis = 1, las = 1, xaxt = "n")
-#   axis(side = 3, at = c(0,5000,10000,15000,20000,25000,30000), cex.axis = 1,
-#        col = "white", col.ticks = "black")
-#   segments(x0=SARS_genes$stop, 
-#            y0 = rep(-10, times = length(SARS_genes$stop)),
-#            y1 = rep(400, times = length(SARS_genes$stop)),
-#            col = "lightgrey")
-#   segments(x0 = SARS_genes$start[1], y0 = -10, y1 = 400, col = "lightgrey")
-#   
-#   for (i in 1:nrow(SARS_genes)){
-#     polygon(x = c(SARS_genes[i,"start"], SARS_genes[i,"start"], 
-#                   SARS_genes[i,"stop"], SARS_genes[i,"stop"]),  # coordinates of gene 
-#             y = c(-9.5, 20, 20, -9.5),    # Y-Coordinates of polygon
-#             col = SARS_genes[i,"col"], border = F)
-#     text(x = SARS_genes[i,"start"] + (SARS_genes[i,"stop"]-SARS_genes[i,"start"])/2, 
-#          y = (20--9.5)/4, labels = SARS_genes[i, "name"], col = "black", cex = 1)
-#   }
-#   
-#   for (i in 1:length(mut_list2)){
-#     plotting_data <- data.frame("Date" = mut_list2[[i]],
-#                                 "Coordinate" = rep(as.numeric(names(mut_list2)[i]), times = length(mut_list2[[i]])))
-#     points(x = plotting_data$Coordinate, plotting_data$Date, type = "p", pch = 20, col = "#e5e5e5")
-#   }
-#   
-#   fixed <- rep(NA, times = length(mut_list2))
-#   for (i in 1:length(fixed)){
-#     fixed[i] <- length(mut_list2[[i]])==8
-#   }
-#   
-#   segments(x0 = -1200, x1 = 29800, y0=198, col = "red")
-#   # text(x = 29500, y = 210, labels = "Bamlanivumab administered", cex = 1, las = 3)
-#   for (i in crude_vcf[!fixed, "POS"]){
-#     days <- unlist(mut_list2[as.numeric(names(mut_list2))==i])
-#     days <- as.data.frame(days)
-#     coordinates <- rep(as.numeric(names(mut_list2[as.numeric(names(mut_list2))==i])),
-#                        times = length(days$days))
-#     points(x = coordinates, y = days$days, pch = 16, col = "#7e7e7e", cex = 1.2)
-#   }
-#   points(23012, crude_vcf[crude_vcf$POS==23012,"EARLIEST_DAY"], 
-#          pch = 1, cex = 2, col = "gold")
-#   points(x = 23012, y = 333, 
-#          pch = 1, cex = 2, col = "gold")
-#   text(23000, 320, labels = "E484T", col = "#7e7e7e", cex = 1)
-#   
-#   # legend(15000,370, legend=c("fixed mutation", "novel mutation", "mAb treatment"), 
-#   #        pch = c(20, 16, NA), lty = c(NA, NA, 1),
-#   #        col = c("#e5e5e5", "#7e7e7e", "red"),
-#   #        bty = "n", cex = 1, bg="transparent", ncol = 2, xpd = T, 
-#   #        xjust = 0.5, yjust = 0)
-# }
-# 
-# 
-# #flipped plot
-# pdf("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/mutations_across_genome_flipped.pdf",
-#     width = 8, height = 8)
-# flipped_mut_plot()
-# dev.off()
-# 
-# # horizontal plot
-# pdf("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/mutations_across_genome_horizontal.pdf",
-#     width = 9, height = 6)
-# horiz_mut_plot()
-# dev.off()

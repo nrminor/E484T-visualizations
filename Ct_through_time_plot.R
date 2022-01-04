@@ -10,7 +10,7 @@ Ct$SARS.CoV.2.PCR.Ct <- round(Ct$SARS.CoV.2.PCR.Ct, digits = 1)
 # ppi <- 300
 # png("visuals/Ct_values_treatments.png", width = 8*ppi, height = 8*ppi, res = ppi)
 # svg("visuals/Ct_values_treatments.svg")
-pdf(file = "/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/Ct_values_treatments.pdf", 
+pdf(file = "/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/Ct_values.pdf", 
     width = 8, height = 6)
 
 Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test, 
@@ -21,6 +21,9 @@ Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test,
                    xend=Encounter.days.post.first.SARS.CoV.2.test[6],
                    y=9,yend=31), 
                colour = "red", size=0.5) +
+  geom_segment(aes(x = 432,xend=432,
+                   y=9,yend=31), 
+               colour = "black", size=0.5, linetype = "dashed") +
   # geom_text(aes(x=Encounter.days.post.first.SARS.CoV.2.test[6], 
   #               y= 9, label = "Bamlanivumab administered"), 
   #           color = "black", vjust = 1, size = 4) +
@@ -28,7 +31,7 @@ Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test,
   geom_point(size = 4) + 
   geom_label(aes(x=Encounter.days.post.first.SARS.CoV.2.test, 
                  y = SARS.CoV.2.PCR.Ct, label = SARS.CoV.2.PCR.Ct), 
-             nudge_y = c(1.2, 1.2, -1.2, 1.2, -1.2, 1.2, -1.2, 1.2, 1.2, 1.2)) + 
+             nudge_y = c(1.2, 1.2, -1.2, 1.2, -1.2, 1.2, -1.2, 1.2, 1.2, 1.2, -1.2, 1.2)) + 
   theme(panel.background = element_rect(fill = "#FFFFFF"), 
         panel.grid = element_line(color = "#D3D3D3"),
         axis.line = element_line(color = "black"), 
