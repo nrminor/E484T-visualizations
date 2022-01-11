@@ -1,10 +1,9 @@
 visuals/
-data/
-data_for_github/
+secondary_data/
 .Rproj.user/
 deprecated/
 
-
+data.zip
 E484T_paper.Rproj
 .DS_Store
 .Rhistory
