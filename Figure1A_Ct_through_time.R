@@ -1,3 +1,8 @@
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+
+
+
 ### PLOTTING QRT-PCR CT VALUES OVER THE COURSE OF A 433-DAY PROLONGED INFECTION
 # UPDATED: 04-Jan-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
@@ -11,11 +16,20 @@
 
 
 
+# test if there is at least one argument: if not, return an error
+if (length(args)==0) {
+  stop("The working directory must be specified here.", call.=FALSE)
+} else if (length(args)>1) {
+  stop("This R script only accepts one argument.", call.=FALSE)
+} 
+
+
+
 ### PREPARING THE ENVIRONMENT AND READING IN DATA ####
 ### --------------------------------------------- #
 library(ggplot2)
 
-data_filepath = ""  ### INSERT YOUR FILE PATH HERE ###
+data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 Ct <- read.csv("data/Ct_timeline.csv")
 Ct$Encounter.date <- as.Date(Ct$Encounter.date, format = "%m/%d/%y")
@@ -25,7 +39,7 @@ Ct$SARS.CoV.2.PCR.Ct <- round(Ct$SARS.CoV.2.PCR.Ct, digits = 1)
 
 ### PLOTTING DATA ####
 ### ------------- #
-pdf(file = "/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/Ct_values.pdf", 
+pdf(file = "visuals/Ct_values.pdf", 
     width = 8, height = 6)
 
 Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test, 

@@ -1,3 +1,8 @@
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+
+
+
 ### PLOTTING THE RESULTS OF ANTIBODY NEUTRALIZATION ASSAY
 # UPDATED: 04-Jan-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
@@ -21,7 +26,7 @@ if(length(new.packages)) install.packages(new.packages)
 library(Biostrings)
 library(tidyverse)
 library(plotrix)
-data_filepath = "" ### INSERT YOUR FILE PATH HERE ###
+data_filepath = args[1] ### OR INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 
 

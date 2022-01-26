@@ -1,4 +1,9 @@
-### PLOTTING INTRAHOST SINGLE-NUCLEOTIDE VARIANT (iSNV) FREQUENCES
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+
+
+
+## PLOTTING INTRAHOST SINGLE-NUCLEOTIDE VARIANT (iSNV) FREQUENCES
 # UPDATED: 04-Jan-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
@@ -39,7 +44,7 @@ if(length(new.packages)) install.packages(new.packages)
 library(Biostrings)
 library(tidyverse)
 library(RColorBrewer)
-data_filepath = ""  ### INSERT YOUR FILE PATH HERE ###
+data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 
 
@@ -318,7 +323,7 @@ pdf(file = "visuals/allele_frequency.pdf",
 # setting the plot frame and grid
 plot(mutations$DAY, mutations$FREQ,
      xlim = c(50, 450),
-     xlab = "Day of Infection (Dec. 2020 - Sept. 2021)", 
+     xlab = "Days Post-Diagnosis", 
      ylim = c(0,1), ylab = "iSNV Frequency", 
      frame.plot = F, cex.axis = 0.8, cex.lab = 0.85, las = 1,
      pch = 20, col = "darkgray", cex = 0.8, type = 'n')
@@ -382,7 +387,7 @@ abline(h=0.5, lty = 5)
 legend(median(fasta_df$day_of_infection), 1.05, 
        legend=c("Oxford Nanopore", "Illumina", "IonTorrent",
                 "E484A", "E484T", "10 iSNVs more frequent in June",
-                "ONT frequency cutoff", "Illumina frequency cutoff",
+                "ONT/IonTorrent frequency cutoff", "Illumina frequency cutoff",
                 "consensus frequency cutoff"),
        lwd = c(NA, NA, NA,
                NA, NA, NA, 

@@ -1,3 +1,8 @@
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+
+
+
 ### PLOTTING INTRAHOST SINGLE-NUCLEOTIDE VARIANT (iSNV) FREQUENCES
 # UPDATED: 04-Jan-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
@@ -22,7 +27,7 @@
 library(Biostrings)
 library(tidyverse)
 library(RColorBrewer)
-data_filepath = ""  ### INSERT YOUR FILE PATH HERE ###
+data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 
 
@@ -198,7 +203,7 @@ pdf(file = "visuals/VOC_plot.pdf",
     width = 9, height = 5)
 plot(fasta_df$day_of_infection, fasta_df$distance, 
      xlim = c(min(gisaid_fasta_df$day_of_infection), max(gisaid_fasta_df$day_of_infection)), ylim = c(0,60),
-     xlab = "Day of Infection", ylab = "Genetic Distance from Wuhan-1", 
+     xlab = "Days Post-Diagnosis", ylab = "Genetic Distance from Wuhan-1", 
      frame.plot = F, cex.axis = 0.8, cex.lab = 0.85, las = 1, pch = 20,
      cex = 3, col = "#4B7395", type = "n")
 grid()

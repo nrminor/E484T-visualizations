@@ -1,3 +1,8 @@
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+
+
+
 ### PLOTTING CONSENSUS MUTATIONS THROUGH TIME
 # UPDATED: 04-Jan-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
@@ -21,7 +26,7 @@ library(tidyverse)
 library(grid)
 library(gridExtra)
 library(gridGraphics)
-data_filepath = ""  ### INSERT YOUR FILE PATH HERE ###
+data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 
 
@@ -182,7 +187,7 @@ pdf("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/mutations_ac
     width = 8, height = 5)
 
   plot(1,1, ylim = c(0,30000), xlim=c(-15, 450), type = "n",
-      ylab = "SARS-CoV-2 Genome Position", xlab = "Day of Infection", 
+      ylab = "SARS-CoV-2 Genome Position", xlab = "Days Post-Diagnosis", 
       frame.plot = F, cex.axis = 1, yaxt = "n")
   axis(side = 2, at = c(0,5000,10000,15000,20000,25000,30000), cex.axis = 0.8,
        col = "white", col.ticks = "black", las = 1)
