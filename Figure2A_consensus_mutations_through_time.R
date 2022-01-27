@@ -59,6 +59,67 @@ for (i in 1:nrow(crude_vcf)){
 }
 crude_vcf$DATES_DETECTED <- str_replace_all(crude_vcf$DATES_DETECTED, "VARSEQ=", "")
 
+# creating columns that separate out codon number, position in codon, gene, nucleotide change, amino acid change, and protein effect.
+for (i in 1:nrow(crude_vcf)){
+  info <- crude_vcf[i, "INFO"]
+  info_split <- unlist(strsplit(info, split = ";"))
+  
+  if (grepl("CDSCN=", info, fixed = T)){
+    crude_vcf[i, "CODON_NUMBER"] <- info_split[grep("^CDSCN", info_split)]
+  } else {
+    crude_vcf[i, "CODON_NUMBER"] <- NA
+  }
+  
+  if (grepl("CDSPWC=", info, fixed = T)){
+    crude_vcf[i, "CODON_POSITION"] <- info_split[grep("^CDSPWC", info_split)]
+  } else {
+    crude_vcf[i, "CODON_POSITION"] <- NA
+  }
+  
+  if (grepl("CDS=", info, fixed = T)){
+    crude_vcf[i, "GENE"] <- info_split[grep("^CDS=", info_split)]
+  } else {
+    crude_vcf[i, "GENE"] <- NA
+  }
+  
+  if (grepl("CDNCHG=", info, fixed = T)){
+    crude_vcf[i, "NUCLEOTIDE_CHANGE"] <- info_split[grep("^CDNCHG=", info_split)]
+  } else {
+    crude_vcf[i, "NUCLEOTIDE_CHANGE"] <- NA
+  }
+  
+  if (grepl("AACHG=", info, fixed = T)){
+    crude_vcf[i, "AA_CHANGE"] <- info_split[grep("^AACHG=", info_split)]
+  } else {
+    crude_vcf[i, "AA_CHANGE"] <- NA
+  }
+  
+  if (T %in% grepl("^PE=", info_split)){
+    crude_vcf[i, "PROTEIN_EFFECT"] <- info_split[grep("^PE=", info_split)]
+  } else {
+    crude_vcf[i, "PROTEIN_EFFECT"] <- NA
+  }
+  
+}
+crude_vcf$CODON_NUMBER <- str_replace_all(crude_vcf$CODON_NUMBER, "CDSCN=", "")
+crude_vcf$CODON_POSITION <- str_replace_all(crude_vcf$CODON_POSITION, "CDSPWC=", "")
+crude_vcf$GENE <- str_replace_all(crude_vcf$GENE, "CDS=", "")
+crude_vcf$GENE <- str_replace_all(crude_vcf$GENE, "CDS", "")
+crude_vcf$NUCLEOTIDE_CHANGE <- str_replace_all(crude_vcf$NUCLEOTIDE_CHANGE, "CDNCHG=", "")
+crude_vcf$AA_CHANGE <- str_replace_all(crude_vcf$AA_CHANGE, "AACHG=", "")
+crude_vcf$PROTEIN_EFFECT <- str_replace_all(crude_vcf$PROTEIN, "PE=", "")
+for (i in 1:length(crude_vcf$PROTEIN_EFFECT)){
+  
+  if (is.na(crude_vcf$PROTEIN_EFFECT[i])){
+    crude_vcf$PROTEIN_EFFECT[i] <- "noncoding"
+  } else if (crude_vcf$PROTEIN_EFFECT[i]=="None"){
+    crude_vcf$PROTEIN_EFFECT[i] <- "synonymous"
+  } else if (crude_vcf$PROTEIN_EFFECT[i]=="Substitution"){
+    crude_vcf$PROTEIN_EFFECT[i] <- "nonsynonymous"
+  }
+  
+}
+
 # parsing out and sorting the dates
 for (i in 1:nrow(crude_vcf)){
   varseq <- crude_vcf[i,"DATES_DETECTED"]
@@ -115,6 +176,14 @@ for (i in 1:nrow(crude_vcf)){
 }
 crude_vcf$EARLIEST_DAY <- as.numeric(crude_vcf$EARLIEST_DAY)
 
+crude_vcf <- crude_vcf[,c(1,2,4,5,11:ncol(crude_vcf))]
+crude_vcf <- crude_vcf[,c(1:4, 6:11, 5, 13, 12, 14)]
+colnames(crude_vcf)[1] <- "GENBANK_REFERENCE"
+syn <- crude_vcf[crude_vcf$PROTEIN_EFFECT=="synonymous",] ; syn_count <- nrow(syn)
+nonsyn <- crude_vcf[crude_vcf$PROTEIN_EFFECT=="nonsynonymous",] ; nonsyn_count <- nrow(nonsyn)
+
+paste("There are", nonsyn_count, "nonsynonomous mutations that arose during this infection.", sep = " ")
+
 
 
 ### MUTATION LISTING ####
@@ -143,14 +212,14 @@ SARS_genes <- data.frame("name" = c("ORF1a", "ORF1b", "S", NA, NA, NA, NA, NA, N
 
 ### LOW COVERAGE REGIONS ####
 ### -------------------- #
-lowcov_docs <- list.files("/Volumes/working_ssd/e484t_manuscript/data/low_coverage_regions")
+lowcov_filepath <- paste0(getwd(), "/data/low_coverage_regions", sep = "")
+lowcov_docs <- list.files(lowcov_filepath)
 for (i in 1:length(lowcov_docs)){
   name <- lowcov_docs[i]
   name <- str_replace(name, "_lowcov.csv", "")
   name <- paste("lowcov", name, sep = "_")
   
-  tmp <- read.csv(paste("/Volumes/working_ssd/e484t_manuscript/data/low_coverage_regions", 
-                        lowcov_docs[i], sep = "/"))
+  tmp <- read.csv(paste(lowcov_filepath, lowcov_docs[i], sep = "/"))
   assign(name, tmp)
   
   remove(tmp) ; remove(name)
@@ -183,7 +252,7 @@ remove(lowcov_20201227_ONT, lowcov_20210107_ONT, lowcov_20210114_ONT, lowcov_202
 
 ### VERTICAL PLOT ####
 ### ------------ #
-pdf("/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/mutations_across_genome_vertical.pdf",
+pdf("visuals/mutations_across_genome_vertical.pdf",
     width = 8, height = 5)
 
   plot(1,1, ylim = c(0,30000), xlim=c(-15, 450), type = "n",
