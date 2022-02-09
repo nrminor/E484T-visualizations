@@ -10,6 +10,6 @@ This repo contains the scripts used to produce the visualizations in the publica
 All R scripts come with instructions on their usage, and are meant to be used within this repo as a working directory. To reproduce our results, we recommend downloading this repo as a ZIP, decompressing, and using it as a working directory.
 
 Planned updates to this repo include:
-* Switching to docker images of BBTools and Nextalign
+* Switching to docker images of BBTools and Nextalign - DONE
 * More instructions on how to reproduce each analysis/visualization, perhaps with a workflow manager
 * Open access to data used in our study

@@ -1,9 +1,10 @@
 visuals/
 data/
-secondary_data/
+readables/
 .Rproj.user/
 deprecated/
 
+prolonged_infection_workflow.tar.gz
 data.zip
 E484T_paper.Rproj
 .DS_Store
