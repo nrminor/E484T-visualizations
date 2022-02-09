@@ -42,7 +42,9 @@ fasta_df <- separate(data = fasta_df, col = 1,
                      sep = ",")
 fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
 fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388)
+# fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388,415,417,482,486)
 fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina", "IonTorrent")
+# fasta_df$seq_platform <- c("ONT", "Illumina", "Illumina", "Illumina", "ONT", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina")
 
 
 
@@ -202,12 +204,14 @@ nonsyn <- crude_vcf[crude_vcf$PROTEIN_EFFECT=="nonsynonymous",] ; nonsyn_count <
 
 paste("There are", nonsyn_count, "nonsynonomous mutations that arose during this infection.", sep = " ")
 
+for (i in unique(nonsyn$DAYS_DETECTED))
+
 aa_subs <- crude_vcf[,c(11,10,7,9,5,6,3,2,4,8,14,12,1)]
 aa_subs$DAYS_DETECTED <- str_replace_all(aa_subs$DAYS_DETECTED, ",", ";")
-write.csv(aa_subs, "data/consensus_mutations_codon_aminoacid.csv", 
+write.csv(aa_subs, "readables/consensus_mutations_codon_aminoacid.csv", 
           row.names = F)
 
-pdf("visuals/mutation_spacing_by_gene.pdf")
+pdf("visuals/nonsyn_mutation_spacing_by_gene.pdf")
 par(mfrow=c(2,3))
 for (i in unique(nonsyn$GENE)[is.na(unique(nonsyn$GENE))==F]){
   gene_sub <- nonsyn[nonsyn$GENE==i, ]
@@ -240,7 +244,7 @@ for (i in 1:nrow(mutation_density_by_gene)){
   mutation_density_by_gene$MUTATION_DENSITY[i] <- mutation_density_by_gene$MUTATION_COUNT[i]/mutation_density_by_gene$GENE_LENGTH[i]
   mutation_density_by_gene$NONSYN_DENSITY[i] <- mutation_density_by_gene$NONSYN_COUNT[i]/mutation_density_by_gene$GENE_LENGTH[i]
 }
-write.csv(mutation_density_by_gene, "data/mutation_density_per_gene.csv", row.names=F)
+write.csv(mutation_density_by_gene, "readables/mutation_density_per_gene.csv", row.names=F)
 
 density_time <- data.frame("GENE" = rep(unique(crude_vcf$GENE)[is.na(unique(crude_vcf$GENE))==F], times = 8), 
                            "DAY" = 0,
@@ -292,7 +296,26 @@ for (i in 1:nrow(density_time)){
   density_time$MUTATION_DENSITY[i] <- density_time$MUTATION_COUNT[i]/density_time$GENE_LENGTH[i]
   density_time$NONSYN_DENSITY[i] <- density_time$NONSYN_COUNT[i]/density_time$GENE_LENGTH[i]
 }
-write.csv(density_time, "data/mutation_density_per_gene_through_time.csv", row.names=F)
+write.csv(density_time, "readables/mutation_density_per_gene_through_time.csv", row.names=F)
+
+plotting_colors2 <- c("green", "brown", "yellow", "red", "purple", "blue")
+pdf("visuals/nonsyn_density_through_time.pdf")
+par(bty="n")
+plot(1,1, xlim = c(100,400), ylim = c(0,max(density_time$NONSYN_DENSITY)),
+     xlab = "Post-Diagnosis Day", ylab = "Nonsyn mutation Density (Count/base pairs)",
+     cex.lab=0.9)
+for (i in 1:length(unique(nonsyn$GENE))){
+  plotting_gene <- density_time[density_time$GENE==unique(nonsyn$GENE)[i],]
+  lines(plotting_gene$DAY, plotting_gene$NONSYN_DENSITY, col = plotting_colors2[i],
+        lwd=3)
+  points(plotting_gene$DAY, plotting_gene$NONSYN_DENSITY, col = plotting_colors2[i],
+         cex=1.5, pch = 20)
+}
+legend(200, 0.0045, legend = unique(nonsyn$GENE), col = plotting_colors2, 
+       lty = rep(1, length(unique(nonsyn$GENE))), 
+       lwd = rep(2, length(unique(nonsyn$GENE))), 
+       cex = 0.6, bty = 'n',bg="transparent", xpd = T, ncol = round(length(unique(nonsyn$GENE))/2))
+dev.off()
 
 plotting_colors <- c("red", "blue", "green", "yellow", "orange", "purple", "brown")
 pdf("visuals/mutations_density_through_time.pdf")
@@ -304,6 +327,8 @@ for (i in 1:length(unique(density_time$GENE))){
   plotting_gene <- density_time[density_time$GENE==unique(density_time$GENE)[i],]
   lines(plotting_gene$DAY, plotting_gene$MUTATION_DENSITY, col = plotting_colors[i],
         lwd=3)
+  points(plotting_gene$DAY, plotting_gene$MUTATION_DENSITY, col = plotting_colors[i],
+        cex=1.5, pch = 20)
 }
 legend(160, 0.006, legend = unique(density_time$GENE), col = plotting_colors, 
        lty = rep(1, length(unique(density_time$GENE))), 

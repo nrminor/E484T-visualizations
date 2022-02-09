@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ## PLOTTING INTRAHOST SINGLE-NUCLEOTIDE VARIANT (iSNV) FREQUENCES
-# UPDATED: 04-Jan-2022 by Nicholas R. Minor
+# UPDATED: 07-Feb-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will do the following:
@@ -60,55 +60,57 @@ fasta_df <- separate(data = fasta_df, col = 1,
                      sep = ",")
 fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
 fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388)
+# fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388,415,417,482,486)
 fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina", "IonTorrent")
+# fasta_df$seq_platform <- c("ONT", "Illumina", "Illumina", "Illumina", "ONT", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina")
 
 
 
 ### IMPORTING TIME POINTS ####
 ### --------------------- #
-timepoint1 <- read.delim("data/individual_USA_WI-WSLH-202168_2020_ONT.vcf", skip = 55)
+timepoint1 <- read.delim("data/individual_USA_WI-WSLH-202168_2020_ONT.ann.vcf", skip = 60)
 timepoint1$DATE <- as.Date(fasta_df$Date[1])
 timepoint1$DAY <- as.Date(fasta_df$day_of_infection[1])
 colnames(timepoint1)[10] <- "Variants"
 timepoint1 <- timepoint1[timepoint1$FILTER=="PASS",]
 
-timepoint2 <- read.delim("data/individual_USA_WI-UW-2731_2021_DHO_25021_ONT.vcf", skip = 55)
+timepoint2 <- read.delim("data/individual_USA_WI-UW-2731_2021_DHO_25021_ONT.ann.vcf", skip = 60)
 timepoint2$DATE <- as.Date(fasta_df$Date[2])
 timepoint2$DAY <- as.Date(fasta_df$day_of_infection[2])
 colnames(timepoint2)[10] <- "Variants"
 timepoint2 <- timepoint2[timepoint2$FILTER=="PASS",]
 
-timepoint3 <- read.delim("data/individual_USA_WI-UW-2731-T2_2021_DHO_25063_ONT.vcf", skip = 55)
+timepoint3 <- read.delim("data/individual_USA_WI-UW-2731-T2_2021_DHO_25063_ONT.ann.vcf", skip = 60)
 timepoint3$DATE <- as.Date(fasta_df$Date[3])
 timepoint3$DAY <- as.Date(fasta_df$day_of_infection[3])
 colnames(timepoint3)[10] <- "Variants"
 timepoint3 <- timepoint3[timepoint3$FILTER=="PASS",]
 
-timepoint4 <- read.delim("data/individual_USA_WI-UW-2731-T3_2021_DHO_25216_ONT.vcf", skip = 55)
+timepoint4 <- read.delim("data/individual_USA_WI-UW-2731-T3_2021_DHO_25216_ONT.ann.vcf", skip = 60)
 timepoint4$DATE <- as.Date(fasta_df$Date[4])
 timepoint4$DAY <- as.Date(fasta_df$day_of_infection[4])
 colnames(timepoint4)[10] <- "Variants"
 timepoint4 <- timepoint4[timepoint4$FILTER=="PASS",]
 
-timepoint5 <- read.delim("data/individual_USA_WI-UW-2731-T4_2021_DHO_26156_ONT.vcf", skip = 55)
+timepoint5 <- read.delim("data/individual_USA_WI-UW-2731-T4_2021_DHO_26156_ONT.ann.vcf", skip = 60)
 timepoint5$DATE <- as.Date(fasta_df$Date[5])
 timepoint5$DAY <- as.Date(fasta_df$day_of_infection[5])
 colnames(timepoint5)[10] <- "Variants"
 timepoint5 <- timepoint5[timepoint5$FILTER=="PASS",]
 
-timepoint6 <- read.delim("data/june_timepoint_ARTICv3_vs_MIDNIGHT/junetimepoint_artic_midnight_cat_variants_20211129.vcf", skip = 55)
+timepoint6 <- read.delim("data/individual_USA_WI-UW-5350_2021_DHO_26076_ONT.ann.vcf", skip = 60)
 timepoint6$DATE <- as.Date(fasta_df$Date[6])
 timepoint6$DAY <- as.Date(fasta_df$day_of_infection[6])
 colnames(timepoint6)[10] <- "Variants"
 timepoint6 <- timepoint6[timepoint6$FILTER=="PASS",]
 
-timepoint7 <- read.delim("data/individual_WI-WSLH-217727_Illumina.vcf", skip = 55)
+timepoint7 <- read.delim("data/individual_WI-WSLH-217727_Illumina.ann.vcf", skip = 60)
 timepoint7$DATE <- as.Date(fasta_df$Date[7])
 timepoint7$DAY <- as.Date(fasta_df$day_of_infection[7])
 colnames(timepoint7)[10] <- "Variants"
 timepoint7 <- timepoint7[timepoint7$FILTER=="PASS",]
 
-timepoint8 <- read.delim("data/individual_USA_Mayo-0928_2021_IonTorrent.vcf", skip = 55)
+timepoint8 <- read.delim("data/individual_USA_Mayo-0928_2021_IonTorrent.ann.vcf", skip = 60)
 timepoint8$DATE <- as.Date(fasta_df$Date[8])
 timepoint8$DAY <- as.Date(fasta_df$day_of_infection[8])
 colnames(timepoint8)[10] <- "Variants"
@@ -117,8 +119,8 @@ timepoint8 <- timepoint8[timepoint8$FILTER=="PASS",]
 full_vcf <- rbind(timepoint1, timepoint2, timepoint3, timepoint4,
                   timepoint5, timepoint6, timepoint7, timepoint8)
 
-write.csv(full_vcf, "data/alltimepoints_variants_20211214.vcf")
-# full_vcf <- read.delim("data/alltimepoints_variants_20211214.vcf", skip = 55)
+write.csv(full_vcf, "readables/alltimepoints_variants_20211214.vcf")
+# full_vcf <- read.delim("readables/alltimepoints_variants_20211214.vcf")
 # str(full_vcf)
 # full_vcf$DATE <- as.Date(full_vcf$DATE)
 
@@ -147,9 +149,9 @@ full_vcf$FREQ <- as.numeric(str_replace_all(full_vcf$FREQ, "AF=", ""))
 # now-irrelevant objects from vector memory.
 full_vcf$REF_POS_ALT <- paste(full_vcf$REF, full_vcf$POS, full_vcf$ALT, sep = "-")
 
-write.csv(full_vcf, "data/alltimepoints_reduced_VCF_20211214.csv",
+write.csv(full_vcf, "readables/alltimepoints_reduced_VCF_20211214.csv",
           quote=F, row.names=F)
-# full_vcf <- read.csv("data/alltimepoints_reduced_VCF_20211214.csv")
+# full_vcf <- read.csv("readables/alltimepoints_reduced_VCF_20211214.csv")
 # str(full_vcf)
 # full_vcf$DATE <- as.Date(full_vcf$DATE)
 
@@ -158,9 +160,9 @@ mutations <- full_vcf[,c("POS", "REF_POS_ALT", "DATE", "DAY", "FREQ", "DEPTH")]
 mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
 
 mutations$SEQ_PLATFORM <- fasta_df$seq_platform[match(mutations$DATE, fasta_df$Date)]
-write.csv(mutations, "data/alltimepoints_mutations_20211214.csv",
+write.csv(mutations, "readables/alltimepoints_mutations_20211214.csv",
           quote=F, row.names=F)
-# mutations <- read.csv("/Volumes/working_ssd/e484t_manuscript/data/alltimepoints_mutations_20211214.csv")
+# mutations <- read.csv("readables/alltimepoints_mutations_20211214.csv")
 str(mutations)
 mutations$DATE <- as.Date(mutations$DATE, format = "%Y-%m-%d")
 mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
@@ -191,8 +193,8 @@ for (i in unique(consensus_mutations$REF_POS_ALT)){
 consensus_mutations <- consensus_mutations[consensus_mutations$KEEP==T,]
 rownames(consensus_mutations) <- NULL
 consensus_mutations <- consensus_mutations[,-ncol(consensus_mutations)]
-write.csv(consensus_mutations, "data/consensus_mutations_20211214.csv", quote=F, row.names = F)
-# consensus_mutations <- read.csv("data/consensus_mutations_20211214.csv")
+write.csv(consensus_mutations, "readables/consensus_mutations_20211214.csv", quote=F, row.names = F)
+# consensus_mutations <- read.csv("readables/consensus_mutations_20211214.csv")
 consensus_mutations$DATE <- as.Date(consensus_mutations$DATE, format = "%Y-%m-%d")
 
 
@@ -228,8 +230,8 @@ mutations <- mutations[mutations$KEEP==T,]
 mutations <- mutations[,-ncol(mutations)]
 rownames(mutations) <- NULL
 
-write.csv(mutations, "data/alltimepoints_filtered_mutations_20211214.csv", quote=F, row.names = F)
-# mutations <- read.csv("data/alltimepoints_filtered_mutations_20211214.csv")
+write.csv(mutations, "readables/alltimepoints_filtered_mutations_20211214.csv", quote=F, row.names = F)
+# mutations <- read.csv("readables/alltimepoints_filtered_mutations_20211214.csv")
 # str(mutations)
 # mutations$DATE <- as.Date(mutations$DATE, format = "%Y-%m-%d")
 mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
@@ -309,8 +311,8 @@ for (i in unique(consensus_by_june$REF_POS_ALT)){
   rownames(consensus_by_june) <- NULL
 }
 
-write.csv(consensus_by_june, "data/consensus_by_june_variants_20211214.csv", quote = F, row.names = F)
-# consensus_by_june <- read.csv("data/consensus_by_june_variants_20211214.csv")
+write.csv(consensus_by_june, "readables/consensus_by_june_variants_20211214.csv", quote = F, row.names = F)
+# consensus_by_june <- read.csv("readables/consensus_by_june_variants_20211214.csv")
 # consensus_by_june$DATE <- as.Date(consensus_by_june$DATE, format = "%Y-%m-%d")
 E484T_allpoints <- consensus_by_june[consensus_by_june$POS==23012,]
 
@@ -322,7 +324,7 @@ pdf(file = "visuals/allele_frequency.pdf",
     width = 8, height = 5)
 # setting the plot frame and grid
 plot(mutations$DAY, mutations$FREQ,
-     xlim = c(50, 450),
+     xlim = c(100, 400),
      xlab = "Days Post-Diagnosis", 
      ylim = c(0,1), ylab = "iSNV Frequency", 
      frame.plot = F, cex.axis = 0.8, cex.lab = 0.85, las = 1,

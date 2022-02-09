@@ -54,7 +54,7 @@ antibody <- read.csv("data/antibody_potency.csv")
 
 ### PLOTTING ###
 ### -------- #
-pdf(file = "/Users/nicholasminor/Documents/informatics/E484T_paper/visuals/neutralization_assay.pdf", 
+pdf(file = "visuals/neutralization_assay.pdf", 
     width = 8, height = 7)
 par(bty="n") # deleting the box
 gap.plot(c(1:4), antibody$Chronic, 

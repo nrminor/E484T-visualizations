@@ -1,6 +1,7 @@
 #!/bin/bash
 
 conda activate nextstrain
+DATE=$(date +'%Y%m%d')
 
 while getopts :d:s:m:p: flag
 do
@@ -11,16 +12,13 @@ do
 		m) metadata=${OPTARG};;
 		i) include=${OPTARG};;
 		p) prefix=${OPTARG};;
-		:) prefix=gisaid ;;
+		:) prefix=gisaid_${DATE} ;;
 	esac
 done
 
-# the line below is a weakness of the script; you must have an updated locate database on your machine to run it. On a Mac, you can do this with one of the following lines, booth of which require root access:
-# sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.locate.plist
-# sudo /usr/libexec/locate.updatedb
-# On linux, you can just type and run "updatedb"
-SCRIPTS=$(locate normalize_gisaid_fasta.sh | grep $(whoami) | sed 's/normalize_gisaid_fasta.sh//') && \
-echo "The nextstrain scripts have been found in this filepath:" $SCRIPTS
+SCRIPTS=($pwd)/ncov/scripts
+NEXTSTRAIN_DOCKER=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch nextstrain/base:build-20211210T215250Z)
+
 
 # reformatting gisaid fasta deflines 
 python3 $SCRIPTS/sanitize_sequences.py \
@@ -30,7 +28,7 @@ python3 $SCRIPTS/sanitize_sequences.py \
 echo "FASTA deflines successfully reformatted"
 
 # indexing gisaid fasta
-augur index \
+$NEXTSTRAIN_DOCKER augur index \
 	--sequences ${outdir}/${prefix}.fasta.gz \
 	--output ${outdir}/${prefix}_index.tsv.gz && \
 echo "FASTA successfully indexed"
@@ -51,10 +49,10 @@ echo "UShER output successfully found and stored in" ${outdir}
 echo "The strain list is called include_B12.txt"
 
 # filtering down strain list to our desired subsample
-augur filter \
+$NEXTSTRAIN_DOCKER augur filter \
 	--metadata ${outdir}/${prefix}_metadata.tsv.gz \
 	--min-date 2020-09-01 \
-	--max-date 2021-10-01 \
+	--max-date 2022-02-01 \
 	--exclude-ambiguous-dates-by any \
 	--subsample-max-sequences 5000 \
 	--group-by region year month \
@@ -65,7 +63,7 @@ echo "The expanded strain list is called strains_global.txt"
 
 
 # filtering fasta and metadata to match the subsample we defined above
-augur filter \
+$NEXTSTRAIN_DOCKER augur filter \
 	--metadata ${outdir}/${prefix}_metadata.tsv.gz \
 	--sequence-index ${outdir}/${prefix}_index.tsv.gz \
 	--sequences ${outdir}/${prefix}.fasta.gz \
