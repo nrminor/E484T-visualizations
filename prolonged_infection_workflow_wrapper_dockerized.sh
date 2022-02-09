@@ -65,8 +65,8 @@ Rscript $scripts/Figure2C_neutralization_assay.R $workingdir
 #### MAPPING READS ####
 # Indexing the reference fasta, mapping reads, cutting out primers, converting, and sorting alignments for each sample
 READS=$data/raw_reads
-REF=$ref/reference.fasta
-PRIMERS=$ref/ARTICv3_primers.bed
+REF=$workingdir/ref/reference.fasta
+PRIMERS=$workingdir/ref/ARTICv3_primers.bed
 
 cp $REF $READS
 cp $PRIMERS $READS
@@ -128,10 +128,10 @@ rm snpeff_vcf_annotation.sh
 #### SUPPLEMENTAL FIGURE 2 ####
 #### --------------------- ####
 # git clone https://github.com/nextstrain/ncov.git $scripts
-bash SupplementalFigure2_gisaid_reformatting_subsampling.sh \
+bash $scripts/SupplementalFigure2_gisaid_reformatting_subsampling.sh \
 	-d $data/b12_enriched_global -s $data/b12_enriched_global/sequences_fasta_2021_11_02.tar.xz \
 	-m $data/b12_enriched_global/metadata_tsv_2021_11_02.tar.xz \
 	-i $data/b12_enriched_global/UShER_b12_relatives_metadata.tsv \
 	-p b12_enriched_global
-bash SupplementalFigure2_nextalign_GISAID_subsample.sh $workingdir
+bash $scripts/SupplementalFigure2_nextalign_GISAID_subsample.sh $workingdir
 Rscript $scripts/SupplementalFigure2_VOC_plot.R $workingdir
