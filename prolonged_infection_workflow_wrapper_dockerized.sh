@@ -94,11 +94,16 @@ rm ivar_consensus_calling.sh
 
 # Calling variants with BBTools
 find "." -maxdepth 1 -type f -name "*.bam" > bam_list.txt 
-bamlist=./bam-list
 $DOCKER_RUN quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
-callvariants.sh list=$bamlist out=alltimepoints_variants_${DATE}.vcf \
+callvariants.sh list=bam_list.txt out=alltimepoints_variants_${DATE}.vcf \
 ref=$REF samstreamer=t ss=4 multisample=t clearfilters ploidy=1 mincov=0 overwrite=t
 rm bam_list.txt 
+
+# Pangolin lineage identification for our consensus # 3.1.19-pangolearn-2022-01-20
+cat *${DATE}.fa > ivar_consensus_seqs_${DATE}.fasta
+rm *${DATE}.fa
+$DOCKER_RUN --pull always staphb/pangolin:latest \
+pangolin --outfile ivar_lineage_report.csv ivar_consensus_seqs_${DATE}.fasta
 
 # tidying up
 rm $REF
@@ -110,9 +115,9 @@ cp ivar_lineage_report.csv ..
 
 #### ANNOTATING BBTOOLS VCFs ####
 cd ..
-mv ivar_consensus_seqs_${DATE} fasta alltimepoints_${DATE}.fasta
+mv ivar_consensus_seqs_${DATE}.fasta alltimepoints_${DATE}.fasta
 cp $scripts/bgzip_unzipping_vcfs.sh .
-$DOCKER_RUN bioslimcontainers/tabix:1.7 \
+docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch bioslimcontainers/tabix:1.7 \
 /bin/bash bgzip_unzipping_vcfs.sh
 rm bgzip_unzipping_vcfs.sh
 
@@ -120,6 +125,9 @@ cp $scripts/snpeff_vcf_annotation.sh .
 docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/data -w /data bioinfoipec/snpeff:latest \
 /bin/bash snpeff_vcf_annotation.sh
 rm snpeff_vcf_annotation.sh
+rm *ONT.vcf
+rm *Illumina.vcf
+rm *IonTorrent.vcf
 
 # Rscript $scripts/SupplementalFigure1_allele_frequency_plot.R $workingdir # HIGHLY RECOMMENDED TO RUN THIS SEPARATELY; IT WILL TAKE A DAY OR TWO
 
