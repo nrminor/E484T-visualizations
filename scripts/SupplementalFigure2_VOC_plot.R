@@ -30,38 +30,72 @@ setwd(data_filepath)
 
 patient_day0 <- as.Date("2020-12-21")-113
 
-vcf_list <- list.files("data/b12_enriched_global/", "*.vcf")
-gisaid_meta <- read.delim("data/b12_enriched_global/b12_enriched_global_subsampled_metadata.tsv")
-gisaid_meta <- gisaid_meta[order(gisaid_meta$strain),] ; rownames(gisaid_meta) <- NULL
-gisaid_meta$date <- as.Date(gisaid_meta$date)
-distances <- data.frame("sample" = rep(NA, times = length(vcf_list)),
-                        "distance" = rep(NA, times = length(vcf_list)),
-                        "date" = rep(as.Date("2000-01-01"), times = length(vcf_list)),
-                        "day" = rep(NA, times = length(vcf_list)))
-
-for (i in 1:length(vcf_list)){
-  vcf <- read.delim(paste("data/b12_enriched_global/", vcf_list[i], sep = ""), skip = 55)
-  vcf <- vcf[str_length(vcf$REF)==1,]
-  vcf <- vcf[str_length(vcf$ALT)==1,]
-  vcf <- vcf[vcf$QUAL>1,]
-  sample <- colnames(vcf)[ncol(vcf)]
-  sample <- str_replace_all(sample, ".", "-")
-  sample <- str_replace_all(sample, "_", "/")
-  distances[i, "sample"] 
-  distances[i, "distance"] <- nrow(vcf)
-  distances[i, "date"] <- as.Date(gisaid_meta$date[i])
-  distances[i, "day"] <- as.numeric(as.Date(gisaid_meta$date[i]) - patient_day0)
-  distances[i, "lineage"] <- gisaid_meta$Pango.lineage[i]
+if (length(list.files("data/b12_enriched_global/", "*.vcf"))>0){
   
-  remove(vcf)
+  vcf_list <- list.files("data/b12_enriched_global/", "*.vcf")
+  vcf_list <- sort(vcf_list)
+  gisaid_meta <- read.delim("data/b12_enriched_global/b12_enriched_global_subsampled_metadata.tsv")
+  gisaid_meta <- gisaid_meta[order(gisaid_meta$strain),] ; rownames(gisaid_meta) <- NULL
+  gisaid_meta$date <- as.Date(gisaid_meta$date)
+  distances <- data.frame("sample" = rep(NA, times = length(vcf_list)),
+                          "distance" = rep(NA, times = length(vcf_list)),
+                          "date" = rep(as.Date("2000-01-01"), times = length(vcf_list)),
+                          "day" = rep(NA, times = length(vcf_list)),
+                          "lineage" = rep(NA, times = length(vcf_list)))
+  
+  for (i in 1:length(vcf_list)){
+    vcf <- read.delim(paste("data/b12_enriched_global/", vcf_list[i], sep = ""), skip = 55)
+    vcf <- vcf[str_length(vcf$REF)==1,]
+    vcf <- vcf[str_length(vcf$ALT)==1,]
+    vcf <- vcf[vcf$QUAL>1,]
+    sample <- colnames(vcf)[ncol(vcf)]
+    sample <- str_replace_all(sample, fixed("."), fixed("-"))
+    sample <- str_replace_all(sample, fixed("_"), fixed("/"))
+    distances[i, "sample"] <- sample
+    distances[i, "distance"] <- nrow(vcf)
+    distances[i, "date"] <- as.Date(gisaid_meta$date[i])
+    distances[i, "day"] <- as.numeric(as.Date(gisaid_meta$date[i]) - patient_day0)
+    distances[i, "lineage"] <- gisaid_meta$Pango.lineage[i]
+    
+    remove(vcf)
+  }
+  
+  write.csv(distances, 
+            paste("readables/gisaid_subsample_root2tip_distances",
+                  as.character(Sys.Date()), ".csv", sep = "_"),
+            quote = F, row.names = F)
+  paste("data/b12_enriched_global/", vcf_list, sep = "") %>%
+    file.remove() %>%
+    table() %>%
+    as.numeric() %>%
+    paste("files were cleared from disk space.", sep = " ") %>%
+    print()
+  
+} else if (length(list.files("readables/", "gisaid_subsample_root2tip_distances")) > 0) {
+  
+  distance_tables <- list.files("readables/", "gisaid_subsample_root2tip_distances")
+  distances <- read.csv(
+    paste("readables/", distance_tables[length(distance_tables)], sep = "")
+  )
+  distances$date <- as.Date(distances$date)
+  gisaid_meta <- read.delim("data/b12_enriched_global/b12_enriched_global_subsampled_metadata.tsv")
+  gisaid_meta <- gisaid_meta[order(gisaid_meta$strain),] ; rownames(gisaid_meta) <- NULL
+  gisaid_meta$date <- as.Date(gisaid_meta$date)
+  
+} else {
+  
+  print(paste("There are no VCFs or pre-processed distance tables in the current working directory, ",
+        getwd(), ", so this script cannot continue plotting.", sep = ""))
+  
 }
+
 
 ### IDENTIFYING PANGO LINEAGES IN GISAID SUBSAMPLE ####
 lineages <- as.data.frame(table(gisaid_meta$Pango.lineage))
 colnames(lineages) <- c("lineage", "count")
 lineages <- lineages[order(lineages$count, decreasing = T),] ; rownames(lineages) <- NULL
 total_count <- sum(lineages$count) ; total_count == nrow(distances)
-sum(lineages[1:7,"count"])/total_count # try to get at least 50% of the samples colored by lineage
+sum(lineages[1:5,"count"])/total_count # try to get at least 50% of the samples colored by lineage
 
 palette <- read.delim("data/SupplementalFigure2_palette.txt", header = FALSE, sep = "\t")
 palette$color <- c(rep(1, 5),
