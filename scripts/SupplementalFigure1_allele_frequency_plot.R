@@ -119,8 +119,8 @@ timepoint8 <- timepoint8[timepoint8$FILTER=="PASS",]
 full_vcf <- rbind(timepoint1, timepoint2, timepoint3, timepoint4,
                   timepoint5, timepoint6, timepoint7, timepoint8)
 
-write.csv(full_vcf, "readables/alltimepoints_variants_20211214.vcf")
-# full_vcf <- read.delim("readables/alltimepoints_variants_20211214.vcf")
+write.csv(full_vcf, "readables/alltimepoints_variants_20211214.csv")
+# full_vcf <- read.csv("data/alltimepoints_variants_20211214.vcf")
 # str(full_vcf)
 # full_vcf$DATE <- as.Date(full_vcf$DATE)
 

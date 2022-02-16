@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ### PLOTTING INTRAHOST SINGLE-NUCLEOTIDE VARIANT (iSNV) FREQUENCES
-# UPDATED: 04-Jan-2022 by Nicholas R. Minor
+# UPDATED: 15-Feb-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will do the following:
@@ -24,101 +24,43 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ### PREPARING THE ENVIRONMENT ####
-library(Biostrings)
 library(tidyverse)
-library(RColorBrewer)
 data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 
+patient_day0 <- as.Date("2020-12-21")-113
 
-
-### IMPORTING VCF & METADATA ####
-gisaid_vcf <- read.delim("data/b12_enriched_global/b12_enriched_global_subsampled_aligned.vcf", skip = 13)
-gisaid_vcf <- gisaid_vcf[grepl("VARSEQ",gisaid_vcf$INFO, fixed=T),] ; rownames(gisaid_vcf) <- NULL
+vcf_list <- list.files("data/b12_enriched_global/", "*.vcf")
 gisaid_meta <- read.delim("data/b12_enriched_global/b12_enriched_global_subsampled_metadata.tsv")
-strain_dates <- gisaid_meta[,c(1,4)]
-strain_dates$date <- as.Date(strain_dates$date, format = "%Y-%m-%d")
-strain_dates$day_of_infection <- as.numeric(NA)
-for (i in 1:nrow(strain_dates)){
-  strain_dates$day_of_infection[i] <- as.numeric(strain_dates$date[i] - as.Date("2020-09-05"))
+gisaid_meta <- gisaid_meta[order(gisaid_meta$strain),] ; rownames(gisaid_meta) <- NULL
+gisaid_meta$date <- as.Date(gisaid_meta$date)
+distances <- data.frame("sample" = rep(NA, times = length(vcf_list)),
+                        "distance" = rep(NA, times = length(vcf_list)),
+                        "date" = rep(as.Date("2000-01-01"), times = length(vcf_list)),
+                        "day" = rep(NA, times = length(vcf_list)))
+
+for (i in 1:length(vcf_list)){
+  vcf <- read.delim(paste("data/b12_enriched_global/", vcf_list[i], sep = ""), skip = 55)
+  vcf <- vcf[str_length(vcf$REF)==1,]
+  vcf <- vcf[str_length(vcf$ALT)==1,]
+  vcf <- vcf[vcf$QUAL>1,]
+  sample <- colnames(vcf)[ncol(vcf)]
+  sample <- str_replace_all(sample, ".", "-")
+  sample <- str_replace_all(sample, "_", "/")
+  distances[i, "sample"] 
+  distances[i, "distance"] <- nrow(vcf)
+  distances[i, "date"] <- as.Date(gisaid_meta$date[i])
+  distances[i, "day"] <- as.numeric(as.Date(gisaid_meta$date[i]) - patient_day0)
+  distances[i, "lineage"] <- gisaid_meta$Pango.lineage[i]
   
+  remove(vcf)
 }
-
-
-
-### PREPARING THE GISAID SUBSAMPLE FASTA ####
-gisaid_fasta <- readDNAStringSet("data/b12_enriched_global/b12_enriched_global.aligned.fasta")
-seq_names = names(gisaid_fasta)
-sequence = paste(gisaid_fasta)
-gisaid_fasta_df <- data.frame(seq_names, sequence)
-remove(gisaid_fasta)
-
-
-
-### PREPARING METADATA & MATCHING WITH FASTA ####
-gisaid_fasta_df <- gisaid_fasta_df[match(strain_dates$strain, gisaid_fasta_df$seq_names),] ; rownames(gisaid_fasta_df) <- NULL
-gisaid_meta <- gisaid_meta[match(strain_dates$strain, gisaid_meta$strain),] ; rownames(gisaid_meta) <- NULL
-
-# which(is.na(gisaid_fasta_df$seq_names)) # -> to_remove
-# which(is.na(gisaid_meta$strain)) # -> to_remove2
-gisaid_fasta_df$seq_names[which(is.na(gisaid_fasta_df$seq_names))] <- gisaid_meta$strain[which(is.na(gisaid_fasta_df$seq_names))]
-which(is.na(gisaid_fasta_df$seq_names))
-which(is.na(gisaid_meta$strain))
-
-gisaid_fasta_df$date <- as.Date(strain_dates$date, format = "%Y-%m-%d")
-gisaid_meta$date <- as.Date(strain_dates$date, format = "%Y-%m-%d")
-
-gisaid_fasta_df$day_of_infection <- strain_dates$day_of_infection
-gisaid_meta$day_of_infection <- strain_dates$day_of_infection
-
-
-
-### IDENTIFYING VARIANT NAMES, TYPES, & FREQUENCIES IN VCF ####
-for (i in 1:nrow(gisaid_vcf)){
-  info <- gisaid_vcf[i, "INFO"]
-  info_split <- unlist(strsplit(info, split = ";"))
-  gisaid_vcf[i, "SAMPLES"] <- info_split[grep("^VARSEQ", info_split)]
-}
-gisaid_vcf$SAMPLES <- str_replace_all(gisaid_vcf$SAMPLES, "VARSEQ=", "")
-
-for (i in 1:nrow(gisaid_vcf)){
-  info <- gisaid_vcf[i, "INFO"]
-  info_split <- unlist(strsplit(info, split = ";"))
-  gisaid_vcf[i, "MUTATION_TYPE"] <- info_split[grep("^TYPE", info_split)]
-}
-gisaid_vcf$MUTATION_TYPE <- str_replace_all(gisaid_vcf$MUTATION_TYPE, "TYPE=", "")
-
-for (i in 1:nrow(gisaid_vcf)){
-  info <- gisaid_vcf[i, "INFO"]
-  info_split <- unlist(strsplit(info, split = ";"))
-  gisaid_vcf[i, "FREQ"] <- info_split[grep("^VF", info_split)]
-}
-gisaid_vcf$FREQ <- str_replace_all(gisaid_vcf$FREQ, "VF=", "")
-
-
-
-### REMOVING ANY INDELS FROM GISAID VCF, LEAVING ONLY SNVs ####
-gisaid_vcf <- gisaid_vcf[!grepl("Deletion", gisaid_vcf$MUTATION_TYPE),]
-
-
-
-### COUNTING MUTATIONS FOR EACH SAMPLE ####
-gisaid_fasta_df$distance <- rep(0, nrow(gisaid_fasta_df))
-for (i in 1:length(gisaid_vcf$SAMPLES)){
-  sub <- unlist(strsplit(gisaid_vcf$SAMPLES[i], split = ","))
-  for (j in sub){
-    add <- gisaid_fasta_df[gisaid_fasta_df$seq_names==j,"distance"] + 1
-    gisaid_fasta_df[gisaid_fasta_df$seq_names==j,"distance"] <- add
-  }
-} 
-
-
 
 ### IDENTIFYING PANGO LINEAGES IN GISAID SUBSAMPLE ####
 lineages <- as.data.frame(table(gisaid_meta$Pango.lineage))
 colnames(lineages) <- c("lineage", "count")
 lineages <- lineages[order(lineages$count, decreasing = T),] ; rownames(lineages) <- NULL
-total_count <- sum(lineages$count) ; total_count == nrow(gisaid_fasta_df)
+total_count <- sum(lineages$count) ; total_count == nrow(distances)
 sum(lineages[1:7,"count"])/total_count # try to get at least 50% of the samples colored by lineage
 
 palette <- read.delim("data/SupplementalFigure2_palette.txt", header = FALSE, sep = "\t")
@@ -139,27 +81,13 @@ lineages$label[5:nrow(lineages)] <- rep("other", times = length(lineages$label[5
 
 
 ### MOVING LINEAGE DATA INTO FASTA DF ####
-gisaid_fasta_df$lineage <- gisaid_meta$Pango.lineage
-gisaid_fasta_df$color <- ""
-gisaid_fasta_df$label <- ""
-for (i in 1:nrow(gisaid_fasta_df)){
-  gisaid_fasta_df[i,"color"] <- lineages[lineages$lineage==gisaid_fasta_df$lineage[i],"color"]
-  gisaid_fasta_df[i,"label"] <- lineages[lineages$lineage==gisaid_fasta_df$lineage[i],"label"]
+distances$lineage <- gisaid_meta$Pango.lineage
+distances$color <- ""
+distances$label <- ""
+for (i in 1:nrow(distances)){
+  distances[i,"color"] <- lineages[lineages$lineage==distances$lineage[i],"color"]
+  distances[i,"label"] <- lineages[lineages$lineage==distances$lineage[i],"label"]
 }
-
-
-### IMPORTING PATIENT DATA ####
-patient_fasta <- readDNAStringSet("data/alltimepoints_20211104.fasta")
-seq_names <- names(patient_fasta)
-sequence <- paste(patient_fasta)
-fasta_df <- data.frame(seq_names, sequence)
-fasta_df$seq_names <- str_replace_all(fasta_df$seq_names, fixed(" | "), ",")
-fasta_df$sequence <- str_replace_all(fasta_df$sequence, fixed("-"), "N")
-fasta_df <- separate(data = fasta_df, col = 1,
-                     into = c("Sample_ID", "Date"),
-                     sep = ",")
-fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
-fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388)
 
 
 
@@ -202,7 +130,7 @@ for (i in 1:length(crude_vcf$SAMPLE_ID)){
 pdf(file = "visuals/VOC_plot.pdf", 
     width = 9, height = 5)
 plot(fasta_df$day_of_infection, fasta_df$distance, 
-     xlim = c(min(gisaid_fasta_df$day_of_infection), max(gisaid_fasta_df$day_of_infection)), ylim = c(0,60),
+     xlim = c(min(distances$day), max(distances$day)), ylim = c(0,60),
      xlab = "Days Post-Diagnosis", ylab = "Genetic Distance from Wuhan-1", 
      frame.plot = F, cex.axis = 0.8, cex.lab = 0.85, las = 1, pch = 20,
      cex = 3, col = "#4B7395", type = "n")
@@ -212,8 +140,8 @@ grid()
 # axis(side = 1, at = months_axis,
 #      labels = format(months_axis, "%b"), cex.axis = 0.8)
 
-points(gisaid_fasta_df$day_of_infection, gisaid_fasta_df$distance,
-       pch = 20, cex = 1, col = gisaid_fasta_df$color)
+points(distances$day, distances$distance,
+       pch = 20, cex = 1, col = distances$color)
 
 text(198, 55, labels = "Bamlanivimab\nTreatment", cex = 0.8, bty = "l")
 segments(198, y0 = -2, y1 = 52, col = "red", lty = 2)
@@ -228,4 +156,3 @@ legend("topleft", legend = c(lineages$label[1:5], "patient"),
        col = c(lineages$color[1:5], palette[11,1]), bty="n",
        pch = 16, ncol = 2, xpd = T, xjust = 0.5, cex = 1)
 dev.off()
-

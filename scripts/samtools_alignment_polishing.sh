@@ -1,4 +1,4 @@
-#!/bin/bash -eux
+#!/bin/bash
 
 
 PRIMERS=${1:-data/ARTICv3_primers.bed}

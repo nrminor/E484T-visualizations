@@ -1,13 +1,12 @@
 #!/bin/bash
 
-conda activate nextstrain
 DATE=$(date +'%Y%m%d')
 
 while getopts :d:s:m:p: flag
 do
 	case "${flag}" in
 		d) outdir=${OPTARG};;
-		:) outdir=data ;;
+		:) outdir=data/b12_enriched_global ;;
 		s) sequence=${OPTARG};;
 		m) metadata=${OPTARG};;
 		i) include=${OPTARG};;
@@ -16,7 +15,7 @@ do
 	esac
 done
 
-SCRIPTS=($pwd)/ncov/scripts
+SCRIPTS=($pwd)/scripts/ncov
 NEXTSTRAIN_DOCKER=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch nextstrain/base:build-20211210T215250Z)
 
 
@@ -81,3 +80,23 @@ echo "	sequences: " ${outdir}/${prefix}_subsampled_sequences.fasta.gz
 
 gunzip ${outdir}/${prefix}_subsampled_sequences.fasta.gz
 gunzip ${outdir}/${prefix}_subsampled_metadata.tsv.gz
+
+rm ${outdir}/${prefix}.fasta.gz
+rm ${outdir}/${prefix}_metadata.tsv.gz
+rm ${outdir}/${prefix}_index.tsv.gz
+
+
+# mapping subsample fasta to reference sequence
+mkdir ${outdir}/tmp
+Rscript $SCRIPTS/fasta_sep.R $(pwd)/${outdir}
+docker run -i --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch quay.io/biocontainers/minimap2:2.24--h5bf99c6_0 \
+/bin/bash scripts/minimap_gisaid_fastas.sh
+
+# calling VCFs from GISAID subsample
+docker run -i --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
+callvariants.sh \
+list=${outdir}/tmp/sam_list.txt out=${outdir}/${prefix}_subsampled_sequences.vcf.gz \
+ref=ref/reference.fasta samstreamer=t ss=4 multisample=t clearfilters \
+ploidy=1 mincov=0 callsub=t calldel=f callins=f overwrite=t
+rm -r ${outdir}/tmp
+gunzip ${outdir}/*.vcf.gz

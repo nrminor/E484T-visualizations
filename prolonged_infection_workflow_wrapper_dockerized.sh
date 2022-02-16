@@ -36,7 +36,6 @@ do
 	esac
 done
 
-DOCKER_RUN=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch)
 DATE=$(date +'%Y%m%d')
 
 
@@ -74,6 +73,7 @@ cp $PRIMERS $READS
 cd $READS
 REF=$(basename "$REF")
 PRIMERS=$(basename "$PRIMERS")
+DOCKER_RUN=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch)
 
 cp $scripts/minimap_fastq_mapping.sh .
 $DOCKER_RUN biocontainers/minimap2:v2.15dfsg-1-deb_cv1 \
@@ -96,7 +96,8 @@ rm ivar_consensus_calling.sh
 find "." -maxdepth 1 -type f -name "*.bam" > bam_list.txt 
 $DOCKER_RUN quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
 callvariants.sh list=bam_list.txt out=alltimepoints_variants_${DATE}.vcf \
-ref=$REF samstreamer=t ss=4 multisample=t clearfilters ploidy=1 mincov=0 overwrite=t
+ref=$REF samstreamer=t ss=4 multisample=t clearfilters \
+ploidy=1 mincov=0 minallelefraction=0.002 overwrite=t
 rm bam_list.txt 
 
 # Pangolin lineage identification for our consensus # 3.1.19-pangolearn-2022-01-20
@@ -115,6 +116,7 @@ cp ivar_lineage_report.csv ..
 
 #### ANNOTATING BBTOOLS VCFs ####
 cd ..
+DOCKER_RUN=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch)
 mv ivar_consensus_seqs_${DATE}.fasta alltimepoints_${DATE}.fasta
 cp $scripts/bgzip_unzipping_vcfs.sh .
 docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch bioslimcontainers/tabix:1.7 \
@@ -137,8 +139,8 @@ rm *IonTorrent.vcf
 #### --------------------- ####
 # git clone https://github.com/nextstrain/ncov.git $scripts
 bash $scripts/SupplementalFigure2_gisaid_reformatting_subsampling.sh \
-	-d $data/b12_enriched_global -s $data/b12_enriched_global/sequences_fasta_2021_11_02.tar.xz \
-	-m $data/b12_enriched_global/metadata_tsv_2021_11_02.tar.xz \
+	-d $data/b12_enriched_global -s $data/b12_enriched_global/sequences_fasta_2022_02_15.tar.xz \
+	-m $data/b12_enriched_global/metadata_tsv_2022_02_15.tar.xz \
 	-i $data/b12_enriched_global/UShER_b12_relatives_metadata.tsv \
 	-p b12_enriched_global
 bash $scripts/SupplementalFigure2_nextalign_GISAID_subsample.sh $workingdir
