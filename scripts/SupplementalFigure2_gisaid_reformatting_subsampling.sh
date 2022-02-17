@@ -16,11 +16,9 @@ do
 done
 
 SCRIPTS=scripts/ncov_full/scripts
-NEXTSTRAIN_DOCKER=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch nextstrain/base:build-20211210T215250Z)
 
 
 # reformatting gisaid fasta deflines 
-$NEXTSTRAIN_DOCKER 
 docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch nextstrain/base:build-20211210T215250Z \
 python3 $SCRIPTS/sanitize_sequences.py \
 	--sequences $sequence \
@@ -29,12 +27,14 @@ python3 $SCRIPTS/sanitize_sequences.py \
 echo "FASTA deflines successfully reformatted"
 
 # indexing gisaid fasta
-$NEXTSTRAIN_DOCKER augur index \
+docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch nextstrain/base:build-20211210T215250Z \
+augur index \
 	--sequences ${outdir}/${prefix}.fasta.gz \
 	--output ${outdir}/${prefix}_index.tsv.gz && \
 echo "FASTA successfully indexed"
 
 # renaming column headers and strain names in gisaid metadata
+docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch nextstrain/base:build-20211210T215250Z \
 python3 $SCRIPTS/sanitize_metadata.py \
 	--metadata ${metadata} \
 	--parse-location-field Location \
@@ -50,7 +50,8 @@ echo "UShER output successfully found and stored in" ${outdir}
 echo "The strain list is called include_B12.txt"
 
 # filtering down strain list to our desired subsample
-$NEXTSTRAIN_DOCKER augur filter \
+docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch nextstrain/base:build-20211210T215250Z \
+augur filter \
 	--metadata ${outdir}/${prefix}_metadata.tsv.gz \
 	--min-date 2020-09-01 \
 	--max-date 2022-02-01 \
@@ -64,7 +65,8 @@ echo "The expanded strain list is called strains_global.txt"
 
 
 # filtering fasta and metadata to match the subsample we defined above
-$NEXTSTRAIN_DOCKER augur filter \
+docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch nextstrain/base:build-20211210T215250Z \
+augur filter \
 	--metadata ${outdir}/${prefix}_metadata.tsv.gz \
 	--sequence-index ${outdir}/${prefix}_index.tsv.gz \
 	--sequences ${outdir}/${prefix}.fasta.gz \
