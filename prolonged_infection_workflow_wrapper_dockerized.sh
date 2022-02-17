@@ -48,6 +48,7 @@ Rscript $scripts/Figure1A_Ct_through_time.R $workingdir
 
 #### FIGURE 2B ####
 #### --------- ####
+# will add bedtools code to replace Geneious low-coverage region finding
 Rscript $scripts/Figure2A_consensus_mutations_through_time.R $workingdir
 
 
