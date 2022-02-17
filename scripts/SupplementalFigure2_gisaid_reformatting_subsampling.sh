@@ -15,11 +15,13 @@ do
 	esac
 done
 
-SCRIPTS=($pwd)/scripts/ncov
+SCRIPTS=scripts/ncov_full/scripts
 NEXTSTRAIN_DOCKER=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch nextstrain/base:build-20211210T215250Z)
 
 
 # reformatting gisaid fasta deflines 
+$NEXTSTRAIN_DOCKER 
+docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch nextstrain/base:build-20211210T215250Z \
 python3 $SCRIPTS/sanitize_sequences.py \
 	--sequences $sequence \
 	--strip-prefixes "hCoV-19/" \

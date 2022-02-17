@@ -137,11 +137,10 @@ rm *IonTorrent.vcf
 
 #### SUPPLEMENTAL FIGURE 2 ####
 #### --------------------- ####
-# git clone https://github.com/nextstrain/ncov.git $scripts
+# git clone https://github.com/nextstrain/ncov.git $scripts/ncov
 bash $scripts/SupplementalFigure2_gisaid_reformatting_subsampling.sh \
 	-d $data/b12_enriched_global -s $data/b12_enriched_global/sequences_fasta_2022_02_15.tar.xz \
 	-m $data/b12_enriched_global/metadata_tsv_2022_02_15.tar.xz \
 	-i $data/b12_enriched_global/UShER_b12_relatives_metadata.tsv \
 	-p b12_enriched_global
-bash $scripts/SupplementalFigure2_nextalign_GISAID_subsample.sh $workingdir
 Rscript $scripts/SupplementalFigure2_VOC_plot.R $workingdir
