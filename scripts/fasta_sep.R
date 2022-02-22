@@ -2,30 +2,43 @@
 args = commandArgs(trailingOnly=TRUE)
 
 if (length(args)==0) {
-  stop("The data filepath and temp filepath must be specified.", call.=FALSE)
+  stop("The working directory and path to data must be specified.", call.=FALSE)
 } else if (length(args)>2) {
-  stop("This R script only accepts two arguments.", call.=FALSE)
+  stop("This R script only accepts two arguments: The working directory and path to data.", call.=FALSE)
 } 
 
 ### PREPARING THE ENVIRONMENT ####
 library(Biostrings)
 library(tidyverse)
-data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
-setwd(data_filepath)
+data_filepath = args[2]  ### OR INSERT YOUR FILE PATH HERE ###
 
-fasta <- readDNAStringSet("b12_enriched_global_subsampled_sequences.fasta")
+fasta <- readDNAStringSet(data_filepath)
 seq_names <- names(fasta)
-fasta <- read.delim("b12_enriched_global_subsampled_sequences.fasta", header = F)
+
+for (i in 1:length(seq_names)){
+  if (grepl(" ", seq_names[i])){
+    seq_names[i] <- strsplit(seq_names[i], " | ")[[1]][1]
+  } else {next}
+}
+
+fasta <- read.delim(data_filepath, header = F)
 sample_locs <- data.frame("sample" = seq_names, "start" = which(grepl(">", fasta[,1])), "stop" = NA)
 sample_locs$stop <- c((sample_locs$start - 1)[2:nrow(sample_locs)], nrow(fasta))
 
 for (i in 1:nrow(sample_locs)){
-  sub <- fasta[sample_locs$start[i]:sample_locs$stop[i],1]
-  name <- str_replace_all(string = sample_locs$sample[i], pattern = "/", replacement = "_")
-  write.table(sub, paste(getwd(), "/tmp/", name, ".fasta", sep = ""), 
-              quote = F, row.names = F, col.names = F)
-  print(paste("finished with sample", i, "of 4992;", sep = " "))
-  print(paste(round(i/4992 * 100), "% of samples separated.", sep = ""))
-}
+    seq_name <- paste(">", seq_names[i], sep = "")
+    sub <- fasta[sample_locs$start[i]:sample_locs$stop[i],1]
+    sub <- sub[-1]
+    sub <- str_remove_all(sub, "-")
+    sub <- c(seq_name[1], sub)
+    filename <- str_replace_all(string = sample_locs$sample[i], pattern = "/", replacement = "_")
+    write.table(sub, paste(args[1], "/tmp/", filename, ".fasta", sep = ""), 
+                quote = F, row.names = F, col.names = F)
+    print(paste("finished with sample", i, "of", 
+                length(seq_names), sep = " "))
+    print(paste(round(i/length(seq_names) * 100), 
+                "% of samples separated.", sep = ""))
+  }
+
 
 

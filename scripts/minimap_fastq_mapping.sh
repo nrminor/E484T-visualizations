@@ -4,51 +4,37 @@
 
 ### SETUP ###
 ### ----- ###
-REF=${1:-data/reference.fasta}
+READS=${1:-data/raw_reads} # relative path to raw read FASTQs
+REF=${2:-ref/reference.fasta}
 DATE=$(date +'%Y%m%d')
 
 
 
 ### ONT READS ###
 ### --------- ###
-find "." -maxdepth 1 -type f -name "*ONT.fastq.gz" > ont_fastq_list.txt 
+find $READS -maxdepth 1 -type f -name "*ONT.fastq.gz" > $READS/ont_fastq_list.txt 
 
-for i in `cat ont_fastq_list.txt `;
+for i in `cat $READS/ont_fastq_list.txt `;
 do
   f=$(basename "$i")
   NAME=${f/.fastq.gz/}
-  minimap2 -ax map-ont $REF $f > ${NAME}.sam
+  minimap2 -ax map-ont $REF $i > $READS/${NAME}.sam
 done
 
-rm ont_fastq_list.txt
-
-
-
-### IONTORRENT READS ###
-### ---------------- ###
-find "." -maxdepth 1 -type f -name "*IonTorrent.fastq.gz" > ion_fastq_list.txt 
-
-for i in `cat ion_fastq_list.txt `;
-do
-  f=$(basename "$i")
-  NAME=${f/.fastq.gz/}
-  minimap2 -ax sr $REF $f > ${NAME}.sam
-done
-
-rm ion_fastq_list.txt
+rm $READS/ont_fastq_list.txt
 
 
 
 ### ILLUMINA READS ###
 ### ---------------- ###
-find "." -maxdepth 1 -type f -name "*Illumina_R1.fastq.gz" > ill_fastq_list.txt 
+find $READS -maxdepth 1 -type f -name "*R1_Illumina.fastq.gz" > $READS/ill_fastq_list.txt 
 
-for i in `cat ill_fastq_list.txt `;
+for i in `cat $READS/ill_fastq_list.txt `;
 do
   f=$(basename "$i")
-  NAME=${f/_R1.fastq.gz/}
-  READS2=${NAME}_R2.fastq.gz
-  minimap2 -ax sr $REF $f $READS2 > ${NAME}.sam
+  NAME=${f/_R1_Illumina.fastq.gz/}
+  READS2=${NAME}_R2_Illumina.fastq.gz
+  minimap2 -ax sr $REF $i $READS/$READS2 > $READS/${NAME}.sam
 done
 
-rm ill_fastq_list.txt
+rm $READS/ill_fastq_list.txt

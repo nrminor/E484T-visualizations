@@ -37,6 +37,7 @@ do
 done
 
 DATE=$(date +'%Y%m%d')
+DOCKER_RUN=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch)
 
 
 #### FIGURE 1A ####
@@ -48,7 +49,40 @@ Rscript $scripts/Figure1A_Ct_through_time.R $workingdir
 
 #### FIGURE 2B ####
 #### --------- ####
-# will add bedtools code to replace Geneious low-coverage region finding
+
+### CALLING VARIANTS FROM CONSENSUS SEQUENCES ###
+mkdir $data/tmp/
+# separating each consensus sequence into its own fasta
+Rscript $scripts/fasta_sep.R $data $data/alltimepoints_20220222.fasta
+
+# converting FASTAs into SAMs
+$DOCKER_RUN quay.io/biocontainers/minimap2:2.24--h5bf99c6_0 \
+/bin/bash scripts/minimap_consensus_fastas.sh
+
+# calling variants from SAMs
+$DOCKER_RUN quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
+callvariants.sh list=data/tmp/sam_list.txt out=data/tmp/alltimepoints_consensus_variants_${DATE}.vcf \
+ref=ref/reference.fasta multisample=t clearfilters \
+ploidy=1 mincov=0 overwrite=t
+rm individual*.vcf.gz
+
+# moving VCF into position for plotting and clearing tmp files
+mv data/tmp/alltimepoints_consensus_variants_${DATE}.vcf data/
+rm -r $data/tmp/
+
+### DEFINING LOW-COVERAGE REGIONS FROM READS ###
+# Indexing the reference fasta, mapping reads, cutting out primers, converting, and sorting alignments for each sample
+DOCKER_RUN=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch)
+$DOCKER_RUN biocontainers/minimap2:v2.15dfsg-1-deb_cv1 \
+/bin/bash scripts/minimap_fastq_mapping.sh
+$DOCKER_RUN quay.io/biocontainers/samtools:1.14--hb421002_0 \
+/bin/bash scripts/samtools_alignment_polishing.sh ref/primers_per_sample.txt
+
+# defining low-coverage intervals with "covtobed"
+$DOCKER_RUN quay.io/biocontainers/covtobed:1.3.5--h36a6f06_0 \
+/bin/bash scripts/low_cov_intervals.bed 
+
+### PLOTTING THE DATA ###
 Rscript $scripts/Figure2A_consensus_mutations_through_time.R $workingdir
 
 
@@ -62,37 +96,7 @@ Rscript $scripts/Figure2C_neutralization_assay.R $workingdir
 #### SUPPLEMENTAL FIGURE 1 ####
 #### --------------------- ####
 
-#### MAPPING READS ####
-# Indexing the reference fasta, mapping reads, cutting out primers, converting, and sorting alignments for each sample
-READS=$data/raw_reads
-REF=$workingdir/ref/reference.fasta
-PRIMERS=$workingdir/ref/ARTICv3_primers.bed
-
-cp $REF $READS
-cp $PRIMERS $READS
-
-cd $READS
-REF=$(basename "$REF")
-PRIMERS=$(basename "$PRIMERS")
-DOCKER_RUN=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch)
-
-cp $scripts/minimap_fastq_mapping.sh .
-$DOCKER_RUN biocontainers/minimap2:v2.15dfsg-1-deb_cv1 \
-/bin/bash minimap_fastq_mapping.sh $REF
-rm minimap_fastq_mapping.sh
-
-cp $scripts/samtools_alignment_polishing.sh .
-$DOCKER_RUN quay.io/biocontainers/samtools:1.14--hb421002_0 \
-/bin/bash samtools_alignment_polishing.sh $PRIMERS
-rm samtools_alignment_polishing.sh
-
-#### CONSENSUS- AND VARIANT-CALLING ####
-# Calling a consensus for each sample with iVar
-cp $scripts/ivar_consensus_calling.sh .
-$DOCKER_RUN andersenlabapps/ivar:1.3.1 \
-/bin/bash ivar_consensus_calling.sh
-rm ivar_consensus_calling.sh
-
+### VARIANT-CALLING MINOR READ VARIANTS ###
 # Calling variants with BBTools
 find "." -maxdepth 1 -type f -name "*.bam" > bam_list.txt 
 $DOCKER_RUN quay.io/biocontainers/bbmap:38.93--he522d1c_0 \

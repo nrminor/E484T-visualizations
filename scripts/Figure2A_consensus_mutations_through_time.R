@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ### PLOTTING CONSENSUS MUTATIONS THROUGH TIME
-# UPDATED: 04-Jan-2022 by Nicholas R. Minor
+# UPDATED: 22-Feb-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will identify and plot single-nucleotide differences between each
@@ -33,7 +33,7 @@ setwd(data_filepath)
 
 ### FASTA PREP ####
 ### --------- #
-patient_fasta <- readDNAStringSet("data/alltimepoints_20211104.fasta")
+patient_fasta <- readDNAStringSet("data/alltimepoints_20220222.fasta")
 seq_names <- names(patient_fasta)
 fasta_df <- data.frame(seq_names) ; remove(patient_fasta)
 fasta_df$seq_names <- str_replace_all(fasta_df$seq_names, fixed(" | "), ",")
@@ -41,16 +41,14 @@ fasta_df <- separate(data = fasta_df, col = 1,
                      into = c("Sample_ID", "Date"),
                      sep = ",")
 fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
-fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388)
-# fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388,415,417,482,486)
-fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina", "IonTorrent")
-# fasta_df$seq_platform <- c("ONT", "Illumina", "Illumina", "Illumina", "ONT", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina")
+fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388,415,417,482,486)
+fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina")
 
 
 
 ### VCF PREP ####
 ### ------- #
-crude_vcf <- read.delim("data/alltimepoints_consensus_variants_20211104.vcf", skip = 20)
+crude_vcf <- read.delim("data/alltimepoints_consensus_variants_20220222.vcf", skip = 20)
 crude_vcf <- crude_vcf[grepl("VARSEQ",crude_vcf$INFO, fixed=T),] ; rownames(crude_vcf) <- NULL
 
 # creating a column with all dates of detection for each mutation

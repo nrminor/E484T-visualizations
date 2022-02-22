@@ -1,23 +1,23 @@
 #!/bin/bash
 
 
-PRIMERS=${1:-data/ARTICv3_primers.bed}
+PRIMERS=${1:-ref/primers_per_sample.txt}
 DATE=$(date +'%Y%m%d')
 
-find "." -maxdepth 1 -type f -name "*.sam" > sam_list.txt 
+find "data/raw_reads" -maxdepth 1 -type f -name "*.sam" > data/raw_reads/sam_list.txt 
 
-for i in `cat sam_list.txt `;
+for i in `cat data/raw_reads/sam_list.txt `;
 do
   f=$(basename "$i")
   NAME=${f/.sam/}
-  cat $f \
-  | samtools ampliconclip -b $PRIMERS - \
+  primer_set=$(grep $i ref/primers_per_sample.txt | cut -f 2)
+  cat $i \
+  | samtools ampliconclip -b ref/$primer_set - \
   | samtools view -Sb - \
-  | samtools sort - > ${NAME}.bam
-  samtools index ${NAME}.bam
-  samtools mpileup -aa -A -d 600000 -B -Q 0 --output ${NAME}.mpileup ${NAME}.bam
+  | samtools sort - > data/raw_reads/${NAME}.bam
+  samtools index data/raw_reads/${NAME}.bam
 done
 
-rm sam_list.txt
-rm *.sam
+rm data/raw_reads/sam_list.txt
+rm data/raw_reads/*.sam
 

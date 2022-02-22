@@ -92,7 +92,7 @@ rm ${outdir}/${prefix}_index.tsv.gz
 
 # mapping subsample fasta to reference sequence
 mkdir ${outdir}/tmp
-Rscript $SCRIPTS/fasta_sep.R $(pwd)/${outdir}
+Rscript $SCRIPTS/fasta_sep.R $(pwd) $(pwd)/${outdir}/b12_enriched_global_subsampled_sequences.fasta
 docker run -i --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch quay.io/biocontainers/minimap2:2.24--h5bf99c6_0 \
 /bin/bash scripts/minimap_gisaid_fastas.sh
 
