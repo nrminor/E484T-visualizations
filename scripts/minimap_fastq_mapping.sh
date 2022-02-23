@@ -34,7 +34,7 @@ do
   f=$(basename "$i")
   NAME=${f/_R1_Illumina.fastq.gz/}
   READS2=${NAME}_R2_Illumina.fastq.gz
-  minimap2 -ax sr $REF $i $READS/$READS2 > $READS/${NAME}.sam
+  minimap2 -ax sr $REF $i $READS/$READS2 > $READS/${NAME}_Illumina.sam
 done
 
 rm $READS/ill_fastq_list.txt

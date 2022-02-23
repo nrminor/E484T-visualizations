@@ -10,7 +10,7 @@ for i in `cat data/raw_reads/sam_list.txt `;
 do
   f=$(basename "$i")
   NAME=${f/.sam/}
-  primer_set=$(grep $i ref/primers_per_sample.txt | cut -f 2)
+  primer_set=$(grep $NAME $PRIMERS | cut -f 2)
   cat $i \
   | samtools ampliconclip -b ref/$primer_set - \
   | samtools view -Sb - \

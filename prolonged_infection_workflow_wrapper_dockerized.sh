@@ -39,6 +39,11 @@ done
 DATE=$(date +'%Y%m%d')
 DOCKER_RUN=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch)
 
+# Pangolin lineage identification for our consensus # 3.1.19-pangolearn-2022-01-20
+$DOCKER_RUN --pull always staphb/pangolin:latest \
+pangolin --outfile $data/ivar_lineage_report.csv $data/alltimepoints_20220222.fasta
+
+
 
 #### FIGURE 1A ####
 #### --------- ####
@@ -72,7 +77,6 @@ rm -r $data/tmp/
 
 ### DEFINING LOW-COVERAGE REGIONS FROM READS ###
 # Indexing the reference fasta, mapping reads, cutting out primers, converting, and sorting alignments for each sample
-DOCKER_RUN=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch)
 $DOCKER_RUN biocontainers/minimap2:v2.15dfsg-1-deb_cv1 \
 /bin/bash scripts/minimap_fastq_mapping.sh
 $DOCKER_RUN quay.io/biocontainers/samtools:1.14--hb421002_0 \
@@ -80,7 +84,7 @@ $DOCKER_RUN quay.io/biocontainers/samtools:1.14--hb421002_0 \
 
 # defining low-coverage intervals with "covtobed"
 $DOCKER_RUN quay.io/biocontainers/covtobed:1.3.5--h36a6f06_0 \
-/bin/bash scripts/low_cov_intervals.bed 
+/bin/bash scripts/low_cov_intervals.sh 
 
 ### PLOTTING THE DATA ###
 Rscript $scripts/Figure2A_consensus_mutations_through_time.R $workingdir
@@ -98,43 +102,21 @@ Rscript $scripts/Figure2C_neutralization_assay.R $workingdir
 
 ### VARIANT-CALLING MINOR READ VARIANTS ###
 # Calling variants with BBTools
-find "." -maxdepth 1 -type f -name "*.bam" > bam_list.txt 
+find "data/raw_reads/" -maxdepth 1 -type f -name "*Illumina.bam" > data/raw_reads/Illumina_bam_list.txt 
 $DOCKER_RUN quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
-callvariants.sh list=bam_list.txt out=alltimepoints_variants_${DATE}.vcf \
-ref=$REF samstreamer=t ss=4 multisample=t clearfilters \
+callvariants.sh list=data/raw_reads/Illumina_bam_list.txt out=data/alltimepoints_minor_variants_${DATE}.vcf \
+ref=ref/reference.fasta samstreamer=t ss=4 multisample=t clearfilters \
 ploidy=1 mincov=0 minallelefraction=0.002 overwrite=t
-rm bam_list.txt 
+rm data/raw_reads/Illumina_bam_list.txt 
+mv individual*.vcf.gz data/
 
-# Pangolin lineage identification for our consensus # 3.1.19-pangolearn-2022-01-20
-cat *${DATE}.fa > ivar_consensus_seqs_${DATE}.fasta
-rm *${DATE}.fa
-$DOCKER_RUN --pull always staphb/pangolin:latest \
-pangolin --outfile ivar_lineage_report.csv ivar_consensus_seqs_${DATE}.fasta
-
-# tidying up
-rm $REF
-rm $PRIMERS
-mv individual* ..
-cp ivar_consensus_seqs_${DATE}.fasta ..
-cp ivar_lineage_report.csv ..
-
-
-#### ANNOTATING BBTOOLS VCFs ####
-cd ..
-DOCKER_RUN=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch)
-mv ivar_consensus_seqs_${DATE}.fasta alltimepoints_${DATE}.fasta
-cp $scripts/bgzip_unzipping_vcfs.sh .
+### ANNOTATING BBTOOLS VCFs ###
 docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch bioslimcontainers/tabix:1.7 \
-/bin/bash bgzip_unzipping_vcfs.sh
-rm bgzip_unzipping_vcfs.sh
+/bin/bash scripts/bgzip_unzipping_vcfs.sh
 
-cp $scripts/snpeff_vcf_annotation.sh .
 docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/data -w /data bioinfoipec/snpeff:latest \
-/bin/bash snpeff_vcf_annotation.sh
-rm snpeff_vcf_annotation.sh
-rm *ONT.vcf
-rm *Illumina.vcf
-rm *IonTorrent.vcf
+/bin/bash scripts/snpeff_vcf_annotation.sh
+mv snpEff_* data/
 
 # Rscript $scripts/SupplementalFigure1_allele_frequency_plot.R $workingdir # HIGHLY RECOMMENDED TO RUN THIS SEPARATELY; IT WILL TAKE A DAY OR TWO
 
