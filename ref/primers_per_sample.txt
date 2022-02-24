@@ -15,6 +15,7 @@ timepoint08_day388_Illumina	ARTICv4.1_primers.bed
 timepoint09_day415_Illumina	ARTICv4.1_primers.bed
 timepoint09_day415_ONT	Midnightv1_primers.bed
 timepoint10_day417_Illumina	ARTICv4.1_primers.bed
+timepoint10_day417_ONT	Midnightv1_primers.bed
 timepoint11_day482_ONT	Midnightv1_primers.bed
 timepoint11_day482_Illumina	ARTICv4.1_primers.bed
 timepoint12_day488_ONT	Midnightv1_primers.bed

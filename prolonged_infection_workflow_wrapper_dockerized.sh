@@ -68,8 +68,15 @@ $DOCKER_RUN quay.io/biocontainers/minimap2:2.24--h5bf99c6_0 \
 $DOCKER_RUN quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
 callvariants.sh list=data/tmp/sam_list.txt out=data/tmp/alltimepoints_consensus_variants_${DATE}.vcf \
 ref=ref/reference.fasta multisample=t clearfilters \
-ploidy=1 mincov=0 overwrite=t
-rm individual*.vcf.gz
+mincov=0 overwrite=t
+mv individual*.vcf.gz data/
+for i in `ls data/individual*`;
+do
+	FILENAME="$i"
+	NEWNAME="${i/individual/"consensus"}"
+	mv $i $NEWNAME
+done
+gunzip data/raw_reads/individual*.vcf.gz
 
 # moving VCF into position for plotting and clearing tmp files
 mv data/tmp/alltimepoints_consensus_variants_${DATE}.vcf data/
@@ -106,7 +113,7 @@ find "data/raw_reads/" -maxdepth 1 -type f -name "*Illumina.bam" > data/raw_read
 $DOCKER_RUN quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
 callvariants.sh list=data/raw_reads/Illumina_bam_list.txt out=data/alltimepoints_minor_variants_${DATE}.vcf \
 ref=ref/reference.fasta samstreamer=t ss=4 multisample=t clearfilters \
-ploidy=1 mincov=0 minallelefraction=0.002 overwrite=t
+mincov=0 minallelefraction=0.002 overwrite=t
 rm data/raw_reads/Illumina_bam_list.txt 
 mv individual*.vcf.gz data/
 

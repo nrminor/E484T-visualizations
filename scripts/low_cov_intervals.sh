@@ -16,4 +16,6 @@ do
   covtobed --max-cov=20 $i > $OUTPUT/${NAME}.bed
 done
 
+covtobed --max-cov=20 $READS/timepoint07_day333_Illumina.bam > $OUTPUT/timepoint07_day333_Illumina.bed
+
 rm $READS/ont_bam_list.txt
