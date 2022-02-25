@@ -10,4 +10,4 @@ do
   minimap2 -a ref/reference.fasta $i > data/tmp/${NAME}.sam
 done
 
-find "data/tmp" -maxdepth 1 -type f -name "*.sam" > data/tmp/sam_list.txt
+rm data/tmp/fasta_list.txt

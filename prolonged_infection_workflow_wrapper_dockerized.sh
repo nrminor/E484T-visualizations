@@ -37,17 +37,19 @@ do
 done
 
 DATE=$(date +'%Y%m%d')
+cd $workingdir
 DOCKER_RUN=(docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch)
+
+
 
 # Pangolin lineage identification for our consensus # 3.1.19-pangolearn-2022-01-20
 $DOCKER_RUN --pull always staphb/pangolin:latest \
-pangolin --outfile $data/ivar_lineage_report.csv $data/alltimepoints_20220222.fasta
+pangolin --outfile readables/ivar_lineage_report.csv data/alltimepoints_20220222.fasta
 
 
 
 #### FIGURE 1A ####
 #### --------- ####
-cd $workingdir
 Rscript $scripts/Figure1A_Ct_through_time.R $workingdir
 
 
@@ -60,26 +62,18 @@ mkdir $data/tmp/
 # separating each consensus sequence into its own fasta
 Rscript $scripts/fasta_sep.R $data $data/alltimepoints_20220222.fasta
 
-# converting FASTAs into SAMs
+# "converting" FASTAs into SAMs, then BAMS, and finally into pileup format for iVar
 $DOCKER_RUN quay.io/biocontainers/minimap2:2.24--h5bf99c6_0 \
 /bin/bash scripts/minimap_consensus_fastas.sh
+$DOCKER_RUN quay.io/biocontainers/samtools:1.14--hb421002_0 \
+/bin/bash scripts/samtools_consensus_polishing.sh
 
-# calling variants from SAMs
-$DOCKER_RUN quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
-callvariants.sh list=data/tmp/sam_list.txt out=data/tmp/alltimepoints_consensus_variants_${DATE}.vcf \
-ref=ref/reference.fasta multisample=t clearfilters \
-mincov=0 overwrite=t
-mv individual*.vcf.gz data/
-for i in `ls data/individual*`;
-do
-	FILENAME="$i"
-	NEWNAME="${i/individual/"consensus"}"
-	mv $i $NEWNAME
-done
-gunzip data/raw_reads/individual*.vcf.gz
+# creating non-VCF, simplified variant tables with iVar
+$DOCKER_RUN andersenlabapps/ivar:1.3.1 \
+/bin/bash scripts/ivar_variant_tables.sh
 
 # moving VCF into position for plotting and clearing tmp files
-mv data/tmp/alltimepoints_consensus_variants_${DATE}.vcf data/
+mv data/tmp/*variant_table.tsv data/
 rm -r $data/tmp/
 
 ### DEFINING LOW-COVERAGE REGIONS FROM READS ###
