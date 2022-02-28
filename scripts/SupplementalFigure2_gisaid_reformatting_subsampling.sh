@@ -15,7 +15,7 @@ do
 	esac
 done
 
-SCRIPTS=scripts/ncov_full/scripts
+SCRIPTS=scripts/ncov/scripts
 
 
 # reformatting gisaid fasta deflines 
@@ -92,11 +92,12 @@ rm ${outdir}/${prefix}_index.tsv.gz
 
 # mapping subsample fasta to reference sequence
 mkdir ${outdir}/tmp
-Rscript $SCRIPTS/fasta_sep.R $(pwd) $(pwd)/${outdir}/b12_enriched_global_subsampled_sequences.fasta
+Rscript scripts/fasta_sep.R $(pwd)/${outdir} $(pwd)/${outdir}/${prefix}_subsampled_sequences.fasta
 docker run -i --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch quay.io/biocontainers/minimap2:2.24--h5bf99c6_0 \
 /bin/bash scripts/minimap_gisaid_fastas.sh
 
 # calling VCFs from GISAID subsample
+find "data/b12_enriched_global/tmp" -maxdepth 1 -type f -name "*.sam" > data/b12_enriched_global/tmp/sam_list.txt
 docker run -i --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
 callvariants.sh \
 list=${outdir}/tmp/sam_list.txt out=${outdir}/${prefix}_subsampled_sequences.vcf.gz \

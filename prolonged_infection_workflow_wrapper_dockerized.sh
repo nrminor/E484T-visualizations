@@ -107,14 +107,12 @@ find "data/raw_reads/" -maxdepth 1 -type f -name "*Illumina.bam" > data/raw_read
 $DOCKER_RUN quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
 callvariants.sh list=data/raw_reads/Illumina_bam_list.txt out=data/alltimepoints_minor_variants_${DATE}.vcf \
 ref=ref/reference.fasta samstreamer=t ss=4 multisample=t clearfilters \
-mincov=0 minallelefraction=0.002 overwrite=t
+ploidy=1 mincov=0 minallelefraction=0.002 overwrite=t
 rm data/raw_reads/Illumina_bam_list.txt 
 mv individual*.vcf.gz data/
+gunzip data/individual*.vcf.gz
 
 ### ANNOTATING BBTOOLS VCFs ###
-docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch bioslimcontainers/tabix:1.7 \
-/bin/bash scripts/bgzip_unzipping_vcfs.sh
-
 docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/data -w /data bioinfoipec/snpeff:latest \
 /bin/bash scripts/snpeff_vcf_annotation.sh
 mv snpEff_* data/
@@ -127,8 +125,8 @@ mv snpEff_* data/
 #### --------------------- ####
 # git clone https://github.com/nextstrain/ncov.git $scripts/ncov
 bash $scripts/SupplementalFigure2_gisaid_reformatting_subsampling.sh \
-	-d $data/b12_enriched_global -s $data/b12_enriched_global/sequences_fasta_2022_02_15.tar.xz \
-	-m $data/b12_enriched_global/metadata_tsv_2022_02_15.tar.xz \
-	-i $data/b12_enriched_global/UShER_b12_relatives_metadata.tsv \
+	-d data/b12_enriched_global -s data/b12_enriched_global/sequences_fasta_2022_02_15.tar.xz \ # ALL PATHS MUST BE RELATIVE
+	-m data/b12_enriched_global/metadata_tsv_2022_02_15.tar.xz \
+	-i data/b12_enriched_global/UShER_b12_relatives_metadata.tsv \
 	-p b12_enriched_global
 Rscript $scripts/SupplementalFigure2_VOC_plot.R $workingdir
