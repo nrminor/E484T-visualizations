@@ -47,7 +47,7 @@ if (length(list.files("data/b12_enriched_global/", "*.vcf"))>0){
   
   for (i in 1:length(vcf_list)){
     
-    print(paste("Important and processing", vcf_list[i], sep = " "))
+    print(paste("Importing and processing", vcf_list[i], sep = " "))
     
     vcf <- read.delim(paste("data/b12_enriched_global/", vcf_list[i], sep = ""), skip = 55)
     vcf <- vcf[str_length(vcf$REF)==1,] # filtering to insertions and substitutions only
