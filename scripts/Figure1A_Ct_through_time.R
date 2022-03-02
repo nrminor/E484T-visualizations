@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ### PLOTTING QRT-PCR CT VALUES OVER THE COURSE OF A 433-DAY PROLONGED INFECTION
-# UPDATED: 04-Jan-2022 by Nicholas R. Minor
+# UPDATED: 02-Mar-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will simply import and plot the available Ct values. 
@@ -34,12 +34,13 @@ setwd(data_filepath)
 Ct <- read.csv("data/Ct_timeline.csv")
 Ct$Encounter.date <- as.Date(Ct$Encounter.date, format = "%m/%d/%y")
 Ct$SARS.CoV.2.PCR.Ct <- round(Ct$SARS.CoV.2.PCR.Ct, digits = 1)
+Ct <- Ct[is.na(Ct$SARS.CoV.2.PCR.Ct)==F,]
 
 
 
 ### PLOTTING DATA ####
 ### ------------- #
-pdf(file = "visuals/Ct_values.pdf", 
+pdf(file = "visuals/fig1a_ct_values_thru_time.pdf", 
     width = 8, height = 6)
 
 Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test, 
@@ -54,14 +55,14 @@ Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test,
                    y=9,yend=31), 
                colour = "black", size=0.5, linetype = "dashed") +
   geom_point(size = 4) + 
-  geom_label(aes(x=Encounter.days.post.first.SARS.CoV.2.test, 
-                 y = SARS.CoV.2.PCR.Ct, label = SARS.CoV.2.PCR.Ct), 
-             nudge_y = c(1.2, 1.2, -1.2, 1.2, -1.2, 1.2, -1.2, 1.2, 1.2, 1.2, -1.2, 1.2)) + 
+  # geom_label(aes(x=Encounter.days.post.first.SARS.CoV.2.test, 
+  #                y = SARS.CoV.2.PCR.Ct, label = SARS.CoV.2.PCR.Ct), 
+  #            nudge_y = c(1.2, 1.2, -1.2, 1.2, -1.2, 1.2, -1.2, 1.2, 1.2, 1.2, -1.2, 1.2)) + 
   theme(panel.background = element_rect(fill = "#FFFFFF"), 
         panel.grid = element_line(color = "#D3D3D3"),
         axis.line = element_line(color = "black"), 
         legend.key.height = unit(1, 'cm')) + 
-  labs(x = "Day of Infection",
+  labs(x = "Post-Diagnosis Day",
        y = "PCR Cycle Threshold (Ct)",
        col="") + 
   theme(legend.position = "none") + 

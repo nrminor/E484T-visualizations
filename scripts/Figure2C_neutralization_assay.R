@@ -38,7 +38,7 @@ antibody <- read.csv("data/antibody_potency.csv")
 
 ### PLOTTING ###
 ### -------- #
-pdf(file = "visuals/neutralization_assay.pdf", 
+pdf(file = "visuals/fig2c_neutralization_assay.pdf", 
     width = 8, height = 7)
 palette = c("#FFD300", "#0C328A")
 par(bty="n") # deleting the box

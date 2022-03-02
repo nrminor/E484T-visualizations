@@ -213,10 +213,10 @@ lowcov <- lowcov[,-3] ; lowcov <- lowcov[,-ncol(lowcov)]
 
 ### VERTICAL PLOT ####
 ### ------------ #
-pdf("visuals/mutations_across_genome_vertical.pdf",
-    width = 8, height = 5)
+pdf("visuals/fig2a_consensus_mutations.pdf",
+    width = 8, height = 6)
 
-  plot(1,1, ylim = c(0,30000), xlim=c(-15, 450), type = "n",
+  plot(1,1, ylim = c(0,30000), xlim=c(-15, 500), type = "n",
       ylab = "SARS-CoV-2 Genome Position", xlab = "Days Post-Diagnosis", 
       frame.plot = F, cex.axis = 1, yaxt = "n")
   axis(side = 2, at = c(0,5000,10000,15000,20000,25000,30000), cex.axis = 0.8,
@@ -238,7 +238,7 @@ pdf("visuals/mutations_across_genome_vertical.pdf",
                    max = 255)
     polygon(y = c(SARS_genes[i,"start"], SARS_genes[i,"start"], 
                   SARS_genes[i,"stop"], SARS_genes[i,"stop"]),  # coordinates of gene 
-            x = c(0, 417, 417, 0),    # Y-Coordinates of polygon
+            x = c(0, 500, 500, 0),    # Y-Coordinates of polygon
             col = col_tmp, border = F)
   }
 
@@ -299,3 +299,4 @@ pdf("visuals/mutations_across_genome_vertical.pdf",
   #        xjust = 0.5, yjust = 0)
 # }
 dev.off()
+

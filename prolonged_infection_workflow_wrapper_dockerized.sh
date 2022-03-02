@@ -109,15 +109,15 @@ callvariants.sh list=data/raw_reads/Illumina_bam_list.txt out=data/alltimepoints
 ref=ref/reference.fasta samstreamer=t ss=4 multisample=t clearfilters \
 ploidy=1 mincov=0 minallelefraction=0.002 overwrite=t
 rm data/raw_reads/Illumina_bam_list.txt 
-mv individual*.vcf.gz data/
-gunzip data/individual*.vcf.gz
+mv individual*.vcf.gz $data
+gunzip $data/individual*.vcf.gz
 
 ### ANNOTATING BBTOOLS VCFs ###
 docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/data -w /data bioinfoipec/snpeff:latest \
 /bin/bash scripts/snpeff_vcf_annotation.sh
-mv snpEff_* data/
+rm snpEff_*
 
-# Rscript $scripts/SupplementalFigure1_allele_frequency_plot.R $workingdir # HIGHLY RECOMMENDED TO RUN THIS SEPARATELY; IT WILL TAKE A DAY OR TWO
+Rscript $scripts/SupplementalFigure1_iSNV_frequency_plot.R $workingdir
 
 
 
@@ -129,4 +129,4 @@ bash $scripts/SupplementalFigure2_gisaid_reformatting_subsampling.sh \
 	-m data/b12_enriched_global/metadata_tsv_2022_02_15.tar.xz \
 	-i data/b12_enriched_global/UShER_b12_relatives_metadata.tsv \
 	-p b12_enriched_global
-Rscript $scripts/SupplementalFigure2_VOC_plot.R $workingdir
+Rscript $scripts/SupplementalFigure2_gisaid_roottotip_plot.R $workingdir

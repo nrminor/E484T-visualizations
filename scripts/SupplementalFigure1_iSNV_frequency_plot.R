@@ -4,14 +4,14 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ## PLOTTING INTRAHOST SINGLE-NUCLEOTIDE VARIANT (iSNV) FREQUENCES
-# UPDATED: 07-Feb-2022 by Nicholas R. Minor
+# UPDATED: 01-Mar-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will do the following:
 
 # 1) Import some useful information from the consensus sequence FASTA file.
-# 2) Import, parse, and reformat information in VCFs called from the raw reads
-# from each sequencing time point.
+# 2) Import, parse, and reformat information in annotated VCFs called from the
+# raw reads from each sequencing time point.
 # 3) Filter down the iSNVs to only those that are present at consensus frequency
 # (≥ 0.5) by the june time point (post-diagnosis day 297).
 # 4) Retrieve the raw frequencies for all those day-297 consensus variants.
@@ -143,20 +143,45 @@ full_vcf <- rbind(timepoint2, timepoint3, timepoint4,
                   timepoint9, timepoint10, timepoint11, timepoint12)
 
 
-
-### SEPARATING OUT DEPTHS AND FREQUENCIES ####
-### ------------------------------------- #
+### SEPARATING OUT DEPTHS, FREQUENCIES, & EFFECTS ####
+### -------------------------------------------- #
 full_vcf <- full_vcf[grepl("AF",full_vcf$INFO, fixed=T),] ; rownames(full_vcf) <- NULL
+full_vcf <- full_vcf[grepl("DP",full_vcf$INFO, fixed=T),] ; rownames(full_vcf) <- NULL
+full_vcf <- full_vcf[grepl("ANN",full_vcf$INFO, fixed=T),] ; rownames(full_vcf) <- NULL
 
 for (i in 1:nrow(full_vcf)){
+  
   print(paste("separating out frequencies and depths in row", i, sep = " "))
+  print(paste(round(100*(i/nrow(full_vcf)), digits = 2), "% finished.", 
+              sep = ""))
+  
   info <- full_vcf[i, "INFO"]
   info_split <- unlist(strsplit(info, split = ";"))
   full_vcf[i, "DEPTH"] <- info_split[grep("^DP", info_split)]
   full_vcf[i, "FREQ"] <- info_split[grep("^AF", info_split)]
+  full_vcf[i, "ANNOTATIONS"] <- info_split[grep("^ANN", info_split)]
 }
 full_vcf$DEPTH <- as.numeric(str_replace_all(full_vcf$DEPTH, "DP=", ""))
 full_vcf$FREQ <- as.numeric(str_replace_all(full_vcf$FREQ, "AF=", ""))
+
+full_vcf$VARIANT_TYPE <- NA
+full_vcf$GENE <- NA
+full_vcf$AA_EFFECT <- NA
+for (i in 1:nrow(full_vcf)){
+  
+  print(paste("separating out amino acid effects at row ", i, ".", sep = ""))
+  print(paste(round(100*(i/nrow(full_vcf)), digits = 2), "% finished.", 
+              sep = ""))
+  
+  ann <- full_vcf[i, "ANNOTATIONS"]
+  ann <- str_replace_all(ann, fixed("|"), " ; ")
+  ann_split <- unlist(strsplit(ann, split = ";"))
+  full_vcf[i, "VARIANT_TYPE"] <- str_remove_all(ann_split[2], " ")
+  full_vcf[i, "GENE"] <- str_remove_all(ann_split[4], " ")
+  full_vcf[i, "AA_EFFECT"] <- str_remove_all(ann_split[11], " ")
+}
+full_vcf$AA_EFFECT <- str_remove_all(full_vcf$AA_EFFECT, "p.")
+full_vcf$VARIANT_TYPE <- str_remove_all(full_vcf$VARIANT_TYPE, "_variant")
 
 
 
@@ -170,22 +195,23 @@ full_vcf$REF_POS_ALT <- paste(full_vcf$REF, full_vcf$POS, full_vcf$ALT, sep = "-
 write.csv(full_vcf, paste("readables/alltimepoints_variants_",
                           Sys.Date(),
                           ".csv", sep=""), quote=F, row.names=F)
-# full_vcf <- read.csv("data/alltimepoints_variants_2022-02-25.vcf")
+# full_vcf <- read.csv("readables/alltimepoints_variants_2022-03-02.vcf")
 # str(full_vcf)
 # full_vcf$DATE <- as.Date(full_vcf$DATE)
 
-mutations <- full_vcf[,c("POS", "REF_POS_ALT", "DATE", "DAY", "FREQ", "DEPTH")]
+mutations <- full_vcf[,c("POS", "REF_POS_ALT", "GENE", "DATE", "DAY", "FREQ", 
+                         "DEPTH", "VARIANT_TYPE", "AA_EFFECT")]
 remove(full_vcf) ; remove(timepoint2) ; remove(timepoint3) ; remove(timepoint4) 
 remove(timepoint5) ; remove(timepoint6) ; remove(timepoint7) ; remove(timepoint8)
 remove(timepoint9) ; remove(timepoint10) ; remove(timepoint11) ; remove(timepoint12)
 mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
 
-mutations$SEQ_PLATFORM <- fasta_df$seq_platform[match(mutations$DATE, fasta_df$Date)]
+# mutations$SEQ_PLATFORM <- fasta_df$seq_platform[match(mutations$DATE, fasta_df$Date)]
 
-write.csv(full_vcf, paste("readables/alltimepoints_variants_reduced_",
+write.csv(mutations, paste("readables/alltimepoints_variants_reduced_",
                           Sys.Date(),
                           ".csv", sep=""), quote=F, row.names=F)
-# mutations <- read.csv("readables/alltimepoints_mutations_20211214.csv")
+# mutations <- read.csv("readables/alltimepoints_mutations_2022-03-02.csv")
 str(mutations)
 mutations$DATE <- as.Date(mutations$DATE, format = "%Y-%m-%d")
 mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
@@ -201,8 +227,12 @@ consensus_mutations <- mutations_raw
 consensus_mutations$KEEP <- NA
 for (i in unique(consensus_mutations$REF_POS_ALT)){
   
-  print(paste("determining if mutation", i, "is at consensus-level frequency (0.5)",
+  print(paste("determining if mutation", i, "reaches consensus-level frequency (0.5)",
               sep = " "))
+  print(paste(round(100*(i/length(unique(consensus_mutations$REF_POS_ALT))), 
+                    digits = 2), 
+              "% finished.", 
+              sep = ""))
   
   mut_sub <- consensus_mutations[consensus_mutations$REF_POS_ALT==i,]
   
@@ -220,43 +250,43 @@ consensus_mutations <- consensus_mutations[,-ncol(consensus_mutations)]
 write.csv(consensus_mutations,  paste("readables/consensus_mutations_",
                                       Sys.Date(),".csv", sep = ""), 
                                       quote=F, row.names = F)
-# consensus_mutations <- read.csv("readables/consensus_mutations_20211214.csv")
+# consensus_mutations <- read.csv("readables/consensus_mutations_2022-02-25.csv")
 consensus_mutations$DATE <- as.Date(consensus_mutations$DATE, format = "%Y-%m-%d")
 
 
 
 ### FILTERING ####
 ### --------- #
-mutations <- mutations[mutations$FREQ>0.03 & mutations$FREQ < 0.97, ]
-mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
-
-mutations$KEEP <- NA # The loop below filters all indels and leaves only SNVs
-for (i in as.numeric(row.names(mutations))){
-  sub <- mutations[i,"REF_POS_ALT"]
-  sub_split <- unlist(strsplit(sub, split = "-"))
-  print(paste("finding indels to remove in row", i, sep = " "))
-  
-  if (nchar(sub_split[3])==1 & nchar(sub_split[1])==1){
-    mutations$KEEP[i] <- TRUE
-  } else {
-    mutations$KEEP[i] <- FALSE
-  }
-}
-mutations <- mutations[mutations$KEEP==T,]
-rownames(mutations) <- NULL
-
-mutations$KEEP <- (mutations$FREQ*mutations$DEPTH)>10 # this filters to only mutations supported by 10 or more reads
-mutations <- mutations[mutations$KEEP==T,]
-mutations <- mutations[,-ncol(mutations)]
-rownames(mutations) <- NULL
-
-write.csv(mutations, paste("readables/readables/alltimepoints_filtered_mutations_",
-                           Sys.Date(),".csv", sep = ""), 
-          quote=F, row.names = F)
-# mutations <- read.csv("readables/alltimepoints_filtered_mutations_20211214.csv")
-# str(mutations)
-# mutations$DATE <- as.Date(mutations$DATE, format = "%Y-%m-%d")
-mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
+# mutations <- mutations[mutations$FREQ>0.03 & mutations$FREQ < 0.97, ]
+# mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
+# 
+# mutations$KEEP <- NA # The loop below filters all indels and leaves only SNVs
+# for (i in as.numeric(row.names(mutations))){
+#   sub <- mutations[i,"REF_POS_ALT"]
+#   sub_split <- unlist(strsplit(sub, split = "-"))
+#   print(paste("finding indels to remove in row", i, sep = " "))
+#   
+#   if (nchar(sub_split[3])==1 & nchar(sub_split[1])==1){
+#     mutations$KEEP[i] <- TRUE
+#   } else {
+#     mutations$KEEP[i] <- FALSE
+#   }
+# }
+# mutations <- mutations[mutations$KEEP==T,]
+# rownames(mutations) <- NULL
+# 
+# mutations$KEEP <- (mutations$FREQ*mutations$DEPTH)>10 # this filters to only mutations supported by 10 or more reads
+# mutations <- mutations[mutations$KEEP==T,]
+# mutations <- mutations[,-ncol(mutations)]
+# rownames(mutations) <- NULL
+# 
+# write.csv(mutations, paste("readables/readables/alltimepoints_filtered_mutations_",
+#                            Sys.Date(),".csv", sep = ""), 
+#           quote=F, row.names = F)
+# # mutations <- read.csv("readables/alltimepoints_filtered_mutations_20211214.csv")
+# # str(mutations)
+# # mutations$DATE <- as.Date(mutations$DATE, format = "%Y-%m-%d")
+# mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
 
 
 
@@ -331,15 +361,52 @@ for (i in unique(consensus_by_june$REF_POS_ALT)){
   rownames(consensus_by_june) <- NULL
 }
 
-write.csv(consensus_by_june, "readables/consensus_by_june_variants_20211214.csv", quote = F, row.names = F)
-# consensus_by_june <- read.csv("readables/consensus_by_june_variants_20211214.csv")
+consensus_by_june <- consensus_by_june[consensus_by_june$DEPTH>0,]
+write.csv(consensus_by_june, paste("readables/consensus_by_june_variants_",
+                                   Sys.Date(),".csv", sep = ""),
+          quote = F, row.names = F)
+# consensus_by_june <- read.csv("readables/consensus_by_june_variants_2022-03-02.csv")
 # consensus_by_june$DATE <- as.Date(consensus_by_june$DATE, format = "%Y-%m-%d")
+
+supplemental_table2 <- consensus_by_june
+supplemental_table2 <- supplemental_table2[,c("POS", "REF_POS_ALT", "DAY",
+                                              "GENE", "VARIANT_TYPE", "AA_EFFECT")]
+supplemental_table2$NO_OF_DETECTIONS <- 0
+supplemental_table2$DAYS_OF_DETECTION <- 0
+for (i in unique(supplemental_table2$REF_POS_ALT)){
+  
+  sub <- supplemental_table2[supplemental_table2$REF_POS_ALT==i,]
+  supplemental_table2[supplemental_table2$REF_POS_ALT==i,
+                      "NO_OF_DETECTIONS"] <- nrow(sub)
+  
+  supplemental_table2[supplemental_table2$REF_POS_ALT==i,
+                      "DAYS_OF_DETECTION"] <- paste(sub$DAY, collapse = ";")
+}
+supplemental_table2$keep <- NA
+supplemental_table2$keep[1] <- T
+for (i in 2:nrow(supplemental_table2)){
+  
+  if (supplemental_table2[i,"REF_POS_ALT"]==supplemental_table2[i-1,"REF_POS_ALT"]){
+    supplemental_table2$keep[i] <- F
+  } else {
+    supplemental_table2$keep[i] <- T
+  }
+  
+}
+supplemental_table2 <- supplemental_table2[supplemental_table2$keep==T,
+                                           c("POS", "REF_POS_ALT", "GENE", 
+                                             "VARIANT_TYPE", "AA_EFFECT",
+                                             "NO_OF_DETECTIONS",
+                                             "DAYS_OF_DETECTION")]
+row.names(supplemental_table2) <- NULL
+write.csv(supplemental_table2, "readables/supplemental_table2_june_substitutions.csv",
+          row.names = F, quote = F)
 
 
 
 ### PLOTTING LOOPS ####
 # ----------------- #
-pdf(file = "visuals/allele_frequency.pdf", 
+pdf(file = "visuals/figsupp1_isnv_frequencies.pdf", 
     width = 8, height = 5)
 # setting the plot frame and grid
 plot(mutations$DAY, mutations$FREQ,

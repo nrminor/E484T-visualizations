@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ### PLOTTING INTRAHOST SINGLE-NUCLEOTIDE VARIANT (iSNV) FREQUENCES
-# UPDATED: 15-Feb-2022 by Nicholas R. Minor
+# UPDATED: 01-Mar-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will do the following:
@@ -13,7 +13,7 @@ args = commandArgs(trailingOnly=TRUE)
 # 2) Import aligned FASTA sequences from GISAID subsample, plus their metadata.
 # 3) Polish these three files.
 # 4) Count single-nucleotide variations from Wuhan-1 (GenBank: MN908947.3)
-# present at each time point, as well as in each GISAID sample.
+#    present at each time point, as well as in each GISAID sample.
 # 5) Plot these mutations through time.
 
 # Please direct all questions about the reproducibility of this script to:
@@ -106,8 +106,7 @@ if (nrow(distances)!=nrow(gisaid_meta)){
 lineages <- as.data.frame(table(gisaid_meta$Pango.lineage))
 colnames(lineages) <- c("lineage", "count")
 lineages <- lineages[order(lineages$count, decreasing = T),] ; rownames(lineages) <- NULL
-total_count <- sum(lineages$count) ; total_count == nrow(distances)
-sum(lineages[1:5,"count"])/total_count # try to get at least 50% of the samples colored by lineage
+# sum(lineages[1:5,"count"])/total_count # try to get at least 50% of the samples colored by lineage
 
 palette <- read.delim("data/SupplementalFigure2_palette.txt", header = FALSE, sep = "\t")
 palette$color <- c(rep(1, 5),
@@ -150,7 +149,7 @@ variant_counts <- read.csv("readables/patient_variant_counts.csv")
 
 
 ### PLOTTING ####
-pdf(file = "visuals/VOC_plot.pdf", 
+pdf(file = "visuals/figsupp2_gisaid_roottotip_plot.pdf", 
     width = 9, height = 5)
 plot(1:500, 1:500, 
      xlim = c(min(distances$day), max(distances$day)), ylim = c(0,90),
