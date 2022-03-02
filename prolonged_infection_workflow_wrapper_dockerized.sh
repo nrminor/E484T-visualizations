@@ -64,7 +64,7 @@ Rscript $scripts/fasta_sep.R $data $data/alltimepoints_20220222.fasta
 
 # "converting" FASTAs into SAMs, then BAMS, and finally into pileup format for iVar
 $DOCKER_RUN quay.io/biocontainers/minimap2:2.24--h5bf99c6_0 \
-/bin/bash scripts/minimap_consensus_fastas.sh
+/bin/bash scripts/minimap_consensus_fastas.sh data/tmp
 $DOCKER_RUN quay.io/biocontainers/samtools:1.14--hb421002_0 \
 /bin/bash scripts/samtools_consensus_polishing.sh
 
@@ -125,7 +125,7 @@ mv snpEff_* data/
 #### --------------------- ####
 # git clone https://github.com/nextstrain/ncov.git $scripts/ncov
 bash $scripts/SupplementalFigure2_gisaid_reformatting_subsampling.sh \
-	-d data/b12_enriched_global -s data/b12_enriched_global/sequences_fasta_2022_02_15.tar.xz \ # ALL PATHS MUST BE RELATIVE
+	-d $workingdir/data/b12_enriched_global -s data/b12_enriched_global/sequences_fasta_2022_02_15.tar.xz \ # ALL PATHS MUST BE RELATIVE
 	-m data/b12_enriched_global/metadata_tsv_2022_02_15.tar.xz \
 	-i data/b12_enriched_global/UShER_b12_relatives_metadata.tsv \
 	-p b12_enriched_global

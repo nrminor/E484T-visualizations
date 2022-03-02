@@ -93,15 +93,17 @@ rm ${outdir}/${prefix}_index.tsv.gz
 # mapping subsample fasta to reference sequence
 mkdir ${outdir}/tmp
 Rscript scripts/fasta_sep.R $(pwd)/${outdir} $(pwd)/${outdir}/${prefix}_subsampled_sequences.fasta
-docker run -i --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch quay.io/biocontainers/minimap2:2.24--h5bf99c6_0 \
-/bin/bash scripts/minimap_gisaid_fastas.sh
+docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch quay.io/biocontainers/minimap2:2.24--h5bf99c6_0 \
+/bin/bash scripts/minimap_consensus_fastas.sh "data/b12_enriched_global/tmp" && \
+echo "GISAID consensus sequences prepared for variant-calling."
 
 # calling VCFs from GISAID subsample
-find "data/b12_enriched_global/tmp" -maxdepth 1 -type f -name "*.sam" > data/b12_enriched_global/tmp/sam_list.txt
-docker run -i --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
+find "${outdir}/tmp" -maxdepth 1 -type f -name "*.sam" > ${outdir}/tmp/sam_list.txt
+docker run -it --user $(id -u):$(id -g) -v $(pwd)/:/scratch -w /scratch quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
 callvariants.sh \
 list=${outdir}/tmp/sam_list.txt out=${outdir}/${prefix}_subsampled_sequences.vcf.gz \
 ref=ref/reference.fasta samstreamer=t ss=4 multisample=t clearfilters \
-ploidy=1 mincov=0 callsub=t calldel=f callins=f overwrite=t
-rm -r ${outdir}/tmp
+ploidy=1 mincov=0 callsub=t calldel=f callins=f overwrite=t && \
+echo "Variant-calling complete."
+rm ${outdir}/${prefix}_subsampled_sequences.vcf.gz ; mv individual*.vcf.gz ${outdir} ; rm -r ${outdir}/tmp
 gunzip ${outdir}/*.vcf.gz

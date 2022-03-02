@@ -280,11 +280,17 @@ pdf("visuals/mutations_across_genome_vertical.pdf",
   text(y = 23700, x = 316, labels = "E484T", col = "#7e7e7e", cex = 1)
   
   # Plotting the count of mutations at each timepoint
+  variant_counts <- data.frame("day" = fasta_df$day_of_infection,
+                               "date" = fasta_df$Date,
+                               "no_of_mutations" = rep(NA, times= length(fasta_df$day_of_infection)))
   for (i in unique(variants$DAY)){
     day_count <- nrow(variants[variants$DAY==i,])
     text(y = 30500, x = i, labels = day_count, 
          col = "#7e7e7e", cex = 0.5)
+    variant_counts[variant_counts$day==i,"no_of_mutations"] <- day_count
   }
+  write.csv(variant_counts, "readables/patient_variant_counts.csv",
+            row.names = F, )
   
   # legend(200, 28000, legend=c("ancestral", "derived during infection"), 
   #        pch = c(20, 16),

@@ -1,13 +1,14 @@
 #!/bin/bash
 
+WD=${1:-data/raw_reads} # relative path to FASTAs
 
-find "data/tmp" -maxdepth 1 -type f -name "*.fasta" > data/tmp/fasta_list.txt
+find $WD -maxdepth 1 -type f -name "*.fasta" > $WD/fasta_list.txt
 
-for i in `cat data/tmp/fasta_list.txt  `;
+for i in `cat $WD/fasta_list.txt `;
 do
   f=$(basename "$i")
   NAME=${f/.fasta/}
-  minimap2 -a ref/reference.fasta $i > data/tmp/${NAME}.sam
+  minimap2 -a ref/reference.fasta $i > $WD/${NAME}.sam
 done
 
-rm data/tmp/fasta_list.txt
+rm $WD/fasta_list.txt
