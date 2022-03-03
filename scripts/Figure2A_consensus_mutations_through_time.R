@@ -144,6 +144,34 @@ remove(timepoint1, timepoint2, timepoint3, timepoint4, timepoint5,
 
 variants$REF_POS_ALT <- paste(variants$REF, variants$POS, variants$ALT, sep = "-")
 variants <- variants[str_length(variants$ALT)==1,]
+variants <- variants[order(variants$POS),] ; rownames(variants) <- NULL
+variants$EFFECT <- NA
+for (i in 1:nrow(variants)){
+  
+  if (is.na(variants$REF_AA[i])){
+    variants$EFFECT[i] <- "noncoding"
+  } else if (variants$REF_AA[i]==variants$ALT_AA[i]){
+    variants$EFFECT[i] <- "synonymous"
+  } else {
+    variants$EFFECT[i] <- "nonsynonymous"
+  }
+}
+
+protein_effects <- data.frame("REF_POS_ALT" = unique(variants$REF_POS_ALT),
+                              "EFFECT" = NA)
+for (i in 1:nrow(protein_effects)){
+  j <- protein_effects[i, "REF_POS_ALT"]
+  protein_effects[i, "EFFECT"] <- variants[variants$REF_POS_ALT==j, "EFFECT"][1]
+}
+
+for (i in unique(protein_effects$EFFECT)){
+  print(paste("There are",
+              nrow(protein_effects[protein_effects$EFFECT==i,]),
+              i,
+              "mutations among the consensus sequences."),
+        sep = " ")
+}
+
 
 
 

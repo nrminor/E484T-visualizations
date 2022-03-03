@@ -195,7 +195,7 @@ full_vcf$REF_POS_ALT <- paste(full_vcf$REF, full_vcf$POS, full_vcf$ALT, sep = "-
 write.csv(full_vcf, paste("readables/alltimepoints_variants_",
                           Sys.Date(),
                           ".csv", sep=""), quote=F, row.names=F)
-# full_vcf <- read.csv("readables/alltimepoints_variants_2022-03-02.vcf")
+# full_vcf <- read.csv("readables/alltimepoints_variants_2022-03-02.csv")
 # str(full_vcf)
 # full_vcf$DATE <- as.Date(full_vcf$DATE)
 
@@ -211,7 +211,7 @@ mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
 write.csv(mutations, paste("readables/alltimepoints_variants_reduced_",
                           Sys.Date(),
                           ".csv", sep=""), quote=F, row.names=F)
-# mutations <- read.csv("readables/alltimepoints_mutations_2022-03-02.csv")
+# mutations <- read.csv("readables/alltimepoints_variants_reduced_2022-03-02.csv")
 str(mutations)
 mutations$DATE <- as.Date(mutations$DATE, format = "%Y-%m-%d")
 mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
@@ -224,15 +224,12 @@ E484T <- mutations[mutations$POS==23012,] ; E484T$FREQ <- as.numeric(E484T$FREQ)
 ### CONSENSUS MUTATIONS ####
 ### ------------------- #
 consensus_mutations <- mutations_raw
+consensus_mutations <- consensus_mutations[consensus_mutations$DEPTH>=20, ]
 consensus_mutations$KEEP <- NA
 for (i in unique(consensus_mutations$REF_POS_ALT)){
   
   print(paste("determining if mutation", i, "reaches consensus-level frequency (0.5)",
               sep = " "))
-  print(paste(round(100*(i/length(unique(consensus_mutations$REF_POS_ALT))), 
-                    digits = 2), 
-              "% finished.", 
-              sep = ""))
   
   mut_sub <- consensus_mutations[consensus_mutations$REF_POS_ALT==i,]
   
@@ -246,11 +243,11 @@ for (i in unique(consensus_mutations$REF_POS_ALT)){
 }
 consensus_mutations <- consensus_mutations[consensus_mutations$KEEP==T,]
 rownames(consensus_mutations) <- NULL
-consensus_mutations <- consensus_mutations[,-ncol(consensus_mutations)]
+consensus_mutations <- consensus_mutations[,-which(colnames(consensus_mutations)=="KEEP")]
 write.csv(consensus_mutations,  paste("readables/consensus_mutations_",
                                       Sys.Date(),".csv", sep = ""), 
                                       quote=F, row.names = F)
-# consensus_mutations <- read.csv("readables/consensus_mutations_2022-02-25.csv")
+# consensus_mutations <- read.csv("readables/consensus_mutations_2022-03-02.csv")
 consensus_mutations$DATE <- as.Date(consensus_mutations$DATE, format = "%Y-%m-%d")
 
 
@@ -307,6 +304,7 @@ E484T <- E484T[order(E484T$DATE),] ; rownames(E484T) <- NULL
 ### CREATING DATASET OF MUTATIONS REACHING CONSENSUS BY DAY 297 #### 
 ### ----------------------------------------------------------- #
 consensus_by_june <- consensus_mutations
+consensus_by_june$DETECTED_BEFORE_DAY_297 <- NA
 for (i in unique(consensus_by_june$REF_POS_ALT)){
   print(paste("finding whether", i, 
               "reaches consensus frequency (0.5) by day 297", 
@@ -324,26 +322,22 @@ for (i in unique(consensus_by_june$REF_POS_ALT)){
   }
   rownames(consensus_by_june) <- NULL
 }
-# for (i in unique(consensus_by_june$REF_POS_ALT)){
-#   print(paste("processing mutation", i, sep = " "))
-#   
-#   mut_sub <- consensus_by_june[consensus_by_june$REF_POS_ALT==i,]
-#   
-#   if (
-#     !(as.Date("2021-03-22") %in% mut_sub$DATE) |
-#     !(as.Date("2021-02-11") %in% mut_sub$DATE) |
-#     !(as.Date("2021-01-14") %in% mut_sub$DATE) |
-#     !(as.Date("2021-01-07") %in% mut_sub$DATE) |
-#     !(as.Date("2020-12-27") %in% mut_sub$DATE)
-#   ) {
-#     consensus_by_june <- consensus_by_june[!consensus_by_june$REF_POS_ALT==i,]
-#     
-#   } else {
-#     next
-#   }
-#   rownames(consensus_by_june) <- NULL
-# }
-# consensus_by_june_step2 <- consensus_by_june
+for (i in unique(consensus_by_june$REF_POS_ALT)){
+  print(paste("processing mutation", i, sep = " "))
+
+  mut_sub <- consensus_by_june[consensus_by_june$REF_POS_ALT==i,]
+
+  if (min(mut_sub$DAY)==297){
+
+    # consensus_by_june <- consensus_by_june[!consensus_by_june$REF_POS_ALT==i,]
+    consensus_by_june[consensus_by_june$REF_POS_ALT==i, "DETECTED_BEFORE_DAY_297"] <- F
+
+  } else {
+    # next
+    consensus_by_june[consensus_by_june$REF_POS_ALT==i, "DETECTED_BEFORE_DAY_297"] <- T
+  }
+  rownames(consensus_by_june) <- NULL
+}
 for (i in unique(consensus_by_june$REF_POS_ALT)){
   print(paste("processing mutation", i, sep = " "))
   
@@ -370,7 +364,8 @@ write.csv(consensus_by_june, paste("readables/consensus_by_june_variants_",
 
 supplemental_table2 <- consensus_by_june
 supplemental_table2 <- supplemental_table2[,c("POS", "REF_POS_ALT", "DAY",
-                                              "GENE", "VARIANT_TYPE", "AA_EFFECT")]
+                                              "GENE", "VARIANT_TYPE", "AA_EFFECT",
+                                              "DETECTED_BEFORE_DAY_297")]
 supplemental_table2$NO_OF_DETECTIONS <- 0
 supplemental_table2$DAYS_OF_DETECTION <- 0
 for (i in unique(supplemental_table2$REF_POS_ALT)){
@@ -397,7 +392,8 @@ supplemental_table2 <- supplemental_table2[supplemental_table2$keep==T,
                                            c("POS", "REF_POS_ALT", "GENE", 
                                              "VARIANT_TYPE", "AA_EFFECT",
                                              "NO_OF_DETECTIONS",
-                                             "DAYS_OF_DETECTION")]
+                                             "DAYS_OF_DETECTION",
+                                             "DETECTED_BEFORE_DAY_297")]
 row.names(supplemental_table2) <- NULL
 write.csv(supplemental_table2, "readables/supplemental_table2_june_substitutions.csv",
           row.names = F, quote = F)
