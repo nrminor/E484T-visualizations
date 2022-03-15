@@ -1,0 +1,18 @@
+Encounter date,Encounter days post-first SARS-CoV-2 test,SARS-CoV-2 PCR Ct,Specimen,PCR assay,PCR provider,GISAID Accession ID
+9/5/20,0,26.8,NP swab,CDC N1,Exact Sciences,
+12/27/20,113,20.23,NP swab,TaqPath N,WSLH,EPI_ISL_4029567
+1/7/21,124,16.16,NP swab,CDC N1,UW Hospitals and Clinics,EPI_ISL_831496
+1/14/21,131,25.66,NP swab,CDC N1,UW Hospitals and Clinics,EPI_ISL_872778
+2/11/21,159,17.87,NP swab,CDC N1,AIDS Vaccine Research Lab,EPI_ISL_1039839
+3/22/21,198,17.8,NP swab,E and N2,UW Hospitals and Clinics,EPI_ISL_4052911
+6/29/21,297,12.5,NP swab,CDC N1,AIDS Vaccine Research Lab,EPI_ISL_2833904
+8/4/21,333,20.61,NP swab,TaqPath N,WSLH,EPI_ISL_5145656
+9/22/21,382,24.2,NP swab,"Panther Fusion SARS-CoV-2 Assay, Hologic, Inc",Mayo Clinic,
+9/28/21,388,28.61,NP swab,"cobas SARS-CoV-2 assay; orf1ab target, Roche Molecular Systems, Inc.",Mayo Clinic,EPI_ISL_8712661
+10/15/21,405,22,NP swab,"cobas SARS-CoV-2 assay; orf1ab target, Roche Molecular Systems, Inc.",Mayo Clinic,
+10/25/21,415,24.13,NP swab,"cobas SARS-CoV-2 assay; orf1ab target, Roche Molecular Systems, Inc.",,
+10/27/21,417,22.04,NP swab,"cobas SARS-CoV-2 assay; orf1ab target, Roche Molecular Systems, Inc.",Mayo Clinic,
+11/11/21,432,NA,NP swab,,,
+11/12/21,433,NA,NP swab,,,
+12/31/21,482,26.17,NP swab,"cobas SARS-CoV-2 assay; orf1ab target, Roche Molecular Systems, Inc.",Mayo Clinic,
+1/4/21,486,29.84,NP swab,"cobas SARS-CoV-2 assay; orf1ab target, Roche Molecular Systems, Inc.",Mayo Clinic,

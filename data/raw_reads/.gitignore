@@ -1,0 +1,7 @@
+2021_sequencing/
+
+*.mpileup
+*.bam
+*.bam.bai
+*.sam
+*.vcf
