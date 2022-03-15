@@ -77,13 +77,40 @@ mv data/tmp/*variant_table.tsv data/
 rm -r $data/tmp/
 
 ### DEFINING LOW-COVERAGE REGIONS FROM READS ###
-# Indexing the reference fasta, mapping reads, cutting out primers, converting, and sorting alignments for each sample
+# Mapping reads, cutting out primers, converting, downsampling, and sorting alignments for each sample
 $DOCKER_RUN biocontainers/minimap2:v2.15dfsg-1-deb_cv1 \
 /bin/bash scripts/minimap_fastq_mapping.sh
 $DOCKER_RUN quay.io/biocontainers/samtools:1.14--hb421002_0 \
 /bin/bash scripts/samtools_alignment_polishing.sh ref/primers_per_sample.txt
 
-# defining low-coverage intervals with "covtobed"
+find "data/raw_reads" -maxdepth 1 -type f -name "*_collated.bam" > data/raw_reads/collated_list.txt
+
+# recipe for conda environment to run downsampling
+# conda update -n base conda ; conda install -n base -c conda-forge miniconda3
+# conda create --name downsampling python=3.5 
+# conda activate downsampling
+# conda install -c bioconda pysam
+# conda install -c anaconda pandas
+
+# loop to randomly downsample reads
+for i in `cat data/raw_reads/collated_list.txt `;
+do
+  f=$(basename "$i")
+  NAME=${f/_collated.bam/}
+  amplicons=$(grep $NAME $workingdir/ref/primers_per_sample.txt | cut -f 3)
+  python3 $scripts/amplicon_normalize_from_bam.py \
+  --bam_inpath $data/raw_reads/${NAME}_collated.bam \
+  --bam_outpath $data/raw_reads/${NAME}_downsampled.bam \
+  --reads_per_amplicon 1000 --bed_path $workingdir/ref/$amplicons
+done
+conda deactivate
+rm data/raw_reads/collated_list.txt 
+
+# re-sorting downsampled reads
+$DOCKER_RUN quay.io/biocontainers/samtools:1.14--hb421002_0 \
+/bin/bash scripts/samtools_downsample_polishing.sh ref/primers_per_sample.txt
+
+# defining low-coverage intervals in ONT data with "covtobed"
 $DOCKER_RUN quay.io/biocontainers/covtobed:1.3.5--h36a6f06_0 \
 /bin/bash scripts/low_cov_intervals.sh 
 
@@ -107,7 +134,7 @@ find "data/raw_reads/" -maxdepth 1 -type f -name "*Illumina.bam" > data/raw_read
 $DOCKER_RUN quay.io/biocontainers/bbmap:38.93--he522d1c_0 \
 callvariants.sh list=data/raw_reads/Illumina_bam_list.txt out=data/alltimepoints_minor_variants_${DATE}.vcf \
 ref=ref/reference.fasta samstreamer=t ss=4 multisample=t clearfilters \
-ploidy=1 mincov=0 minallelefraction=0.002 overwrite=t
+ploidy=1 mincov=20 minallelefraction=0.002 realign=t callsub=t calldel=f callins=f nopassdot=t overwrite=t
 rm data/raw_reads/Illumina_bam_list.txt 
 mv individual*.vcf.gz $data
 gunzip $data/individual*.vcf.gz

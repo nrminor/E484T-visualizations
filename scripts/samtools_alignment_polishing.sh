@@ -4,6 +4,9 @@
 PRIMERS=${1:-ref/primers_per_sample.txt}
 DATE=$(date +'%Y%m%d')
 
+
+
+## CLIPPING TO AMPLICONS AND CONVERTING TO BAMS
 find "data/raw_reads" -maxdepth 1 -type f -name "*.sam" > data/raw_reads/sam_list.txt 
 
 for i in `cat data/raw_reads/sam_list.txt `;
@@ -21,3 +24,14 @@ done
 rm data/raw_reads/sam_list.txt
 rm data/raw_reads/*.sam
 
+
+
+## COLLATING READS
+find "data/raw_reads" -maxdepth 1 -type f -name "*.bam" > data/raw_reads/bam_list.txt 
+
+for i in `cat data/raw_reads/bam_list.txt `;
+do
+  f=$(basename "$i")
+  NAME=${f/.bam/}
+  samtools collate -o data/raw_reads/${NAME}_collated.bam $i
+done
