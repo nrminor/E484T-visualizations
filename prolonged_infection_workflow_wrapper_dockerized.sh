@@ -151,9 +151,14 @@ Rscript $scripts/SupplementalFigure1_iSNV_frequency_plot.R $workingdir
 #### SUPPLEMENTAL FIGURE 2 ####
 #### --------------------- ####
 # git clone https://github.com/nextstrain/ncov.git $scripts/ncov
+ls -t -1 data/b12_enriched_global/sequences*.tar.xz > data/b12_enriched_global/sequence_tars.txt
+sequence=$(basename $(head -n 1 data/b12_enriched_global/sequence_tars.txt)) && rm data/b12_enriched_global/sequence_tars.txt
+ls -t -1 data/b12_enriched_global/metadata*.tar.xz > data/b12_enriched_global/metadata_tars.txt
+metadata=$(basename $(head -n 1 data/b12_enriched_global/metadata_tars.txt)) && rm data/b12_enriched_global/metadata_tars.txt
+
 bash $scripts/SupplementalFigure2_gisaid_reformatting_subsampling.sh \
-	-d $workingdir/data/b12_enriched_global -s data/b12_enriched_global/sequences_fasta_2022_02_15.tar.xz \ # ALL PATHS MUST BE RELATIVE
-	-m data/b12_enriched_global/metadata_tsv_2022_02_15.tar.xz \
+	-d $workingdir/data/b12_enriched_global -s data/b12_enriched_global/$sequence \ # ALL PATHS MUST BE RELATIVE
+	-m data/b12_enriched_global/$metadata \
 	-i data/b12_enriched_global/UShER_b12_relatives_metadata.tsv \
 	-p b12_enriched_global
 Rscript $scripts/SupplementalFigure2_gisaid_roottotip_plot.R $workingdir
