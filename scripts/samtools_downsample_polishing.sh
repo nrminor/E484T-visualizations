@@ -6,15 +6,17 @@ DATE=$(date +'%Y%m%d')
 
 
 
+find "data/raw_reads" -maxdepth 1 -type f -name "*_downsampled.bam" > data/raw_reads/downsampled_list.txt
+
 # RE-SORTING & CLEANING UP DOWNSAMPLED READS
-for i in `cat data/raw_reads/bam_list.txt `;
+for i in `cat data/raw_reads/downsampled_list.txt `;
 do
   f=$(basename "$i")
-  NAME=${f/.bam/}
+  NAME=${f/_downsampled.bam/}
   amplicons=$(grep $NAME $PRIMERS | cut -f 3)
   samtools sort data/raw_reads/${NAME}_downsampled.bam > data/raw_reads/${NAME}.bam
   rm data/raw_reads/${NAME}_downsampled.bam ; rm data/raw_reads/${NAME}_collated.bam
   samtools index data/raw_reads/${NAME}.bam
 done
 
-rm data/raw_reads/bam_list.txt
+rm data/raw_reads/downsampled_list.txt

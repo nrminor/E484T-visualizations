@@ -26,12 +26,14 @@ rm data/raw_reads/*.sam
 
 
 
-## COLLATING READS
-find "data/raw_reads" -maxdepth 1 -type f -name "*.bam" > data/raw_reads/bam_list.txt 
+## COLLATING ILLUMINA READS
+find "data/raw_reads" -maxdepth 1 -type f -name "*_Illumina.bam" > data/raw_reads/ill_bam_list.txt 
 
-for i in `cat data/raw_reads/bam_list.txt `;
+for i in `cat data/raw_reads/ill_bam_list.txt `;
 do
   f=$(basename "$i")
   NAME=${f/.bam/}
   samtools collate -o data/raw_reads/${NAME}_collated.bam $i
 done
+
+rm data/raw_reads/ill_bam_list.txt 

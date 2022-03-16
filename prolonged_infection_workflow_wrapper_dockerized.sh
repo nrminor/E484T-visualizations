@@ -88,7 +88,7 @@ find "data/raw_reads" -maxdepth 1 -type f -name "*_collated.bam" > data/raw_read
 # recipe for conda environment to run downsampling
 # conda update -n base conda ; conda install -n base -c conda-forge miniconda3
 # conda create --name downsampling python=3.5 
-# conda activate downsampling
+conda activate downsampling
 # conda install -c bioconda pysam
 # conda install -c anaconda pandas
 
