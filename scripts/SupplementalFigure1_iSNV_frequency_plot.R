@@ -150,7 +150,7 @@ full_vcf <- rbind(timepoint2, timepoint3, timepoint4,
 
 ### SEPARATING OUT DEPTHS, FREQUENCIES, & EFFECTS ####
 ### -------------------------------------------- #
-# full_vcf <- full_vcf[full_vcf$QUAL>5,]
+full_vcf <- full_vcf[full_vcf$QUAL>0,]
 full_vcf <- full_vcf[grepl("AF",full_vcf$INFO, fixed=T),] ; rownames(full_vcf) <- NULL
 full_vcf <- full_vcf[grepl("DP",full_vcf$INFO, fixed=T),] ; rownames(full_vcf) <- NULL
 full_vcf <- full_vcf[grepl("ANN",full_vcf$INFO, fixed=T),] ; rownames(full_vcf) <- NULL
