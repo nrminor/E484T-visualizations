@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ### PLOTTING INTRAHOST SINGLE-NUCLEOTIDE VARIANT (iSNV) FREQUENCES
-# UPDATED: 01-Mar-2022 by Nicholas R. Minor
+# UPDATED: 29-Mar-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will do the following:
@@ -157,10 +157,6 @@ plot(1:500, 1:500,
      frame.plot = F, cex.axis = 0.8, cex.lab = 0.85, las = 1, pch = 20,
      cex = 3, col = "#4B7395", type = "n")
 grid()
-# 
-# months_axis <- seq(min(gisaid_fasta_df$date), max(gisaid_fasta_df$date), by = "month")
-# axis(side = 1, at = months_axis,
-#      labels = format(months_axis, "%b"), cex.axis = 0.8)
 
 points(distances$day, distances$distance,
        pch = 20, cex = 1, col = distances$color)
@@ -169,12 +165,11 @@ text(198, 80, labels = "Bamlanivimab\nTreatment", cex = 0.8, bty = "l")
 segments(198, y0 = -4, y1 = 75, col = "red", lty = 2)
 segments(198, y0 = 85, y1 = 95, col = "red", lty = 2)
 
-# abline(VOC_lm, col = rgb(165/255,15/255,21/255,3/4), lwd = 4)
-
 points(variant_counts$day, variant_counts$no_of_mutations,
        pch = 20, cex = 2, col = palette[11,1])
-# abline(patient_lm, col = rgb(8/255,81/255,156/255,3/4), lwd = 4)
+
 legend("topleft", legend = c(lineages$label[1:5], "patient"),
        col = c(lineages$color[1:5], palette[11,1]), bty="n",
        pch = 16, ncol = 2, xpd = T, xjust = 0.5, cex = 0.8)
+
 dev.off()

@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ## PLOTTING INTRAHOST SINGLE-NUCLEOTIDE VARIANT (iSNV) FREQUENCES
-# UPDATED: 01-Mar-2022 by Nicholas R. Minor
+# UPDATED: 29-Mar-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will do the following:
@@ -23,10 +23,7 @@ args = commandArgs(trailingOnly=TRUE)
 # cluster. For this reason, the script also writes intermediate datasets as it
 # goes, which we are including in our GitHub repository. To reproduce this
 # analysis and visualization more quickly, comment out the code in between the
-# read functions throughout the script, and uncomment the read functions. If you
-# go this route, you will also need to reformat dates into a date format with
-# lines of code such as full_vcf$DATE <- as.Date(full_vcf$DATE), which follow
-# the read functions.
+# read functions throughout the script, and uncomment the read functions.
 
 # Please direct all questions about the reproducibility of this script to:
 # nrminor@wisc.edu
@@ -39,16 +36,13 @@ args = commandArgs(trailingOnly=TRUE)
 ### ------------------------ #
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
-
-BiocManager::install("Biostrings")
-
+if (!("Biostrings" %in% installed.packages()[,"Package"])) {
+  BiocManager::install("Biostrings")
+}
 list.of.packages <- c("tidyverse", "RColorBrewer")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
-
-library(Biostrings)
-library(tidyverse)
-library(RColorBrewer)
+invisible(lapply(list.of.packages, library, character.only = TRUE))
 data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 
@@ -61,10 +55,10 @@ seq_names <- names(patient_fasta)
 fasta_df <- data.frame(seq_names) ; remove(patient_fasta)
 fasta_df$seq_names <- str_replace_all(fasta_df$seq_names, fixed(" | "), ",")
 fasta_df <- separate(data = fasta_df, col = 1,
-                     into = c("Sample_ID", "Date"),
+                     into = c("Sample_ID", "day_of_infection"),
                      sep = ",")
-fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
-fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388,415,417,482,486)
+fasta_df$day_of_infection <- str_remove_all(fasta_df$day_of_infection, "Infection Day ")
+fasta_df$day_of_infection <- as.numeric(fasta_df$day_of_infection)
 fasta_df$seq_platform <- c("ONT", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina", "Illumina")
 
 
@@ -72,73 +66,60 @@ fasta_df$seq_platform <- c("ONT", "Illumina", "Illumina", "Illumina", "Illumina"
 ### IMPORTING TIME POINTS ####
 ### --------------------- #
 # timepoint1 <- read.delim("data/individual_USA_WI-WSLH-202169_2020_ONT.ann.vcf", skip = 60)
-# timepoint1$DATE <- as.Date(fasta_df$Date[1])
-# timepoint1$DAY <- as.Date(fasta_df$day_of_infection[1])
 # colnames(timepoint1)[10] <- "Variants"
 # timepoint1 <- timepoint1[timepoint1$FILTER=="PASS",]
 
 timepoint2 <- read.delim("data/individual_timepoint02_day124_Illumina.ann.vcf", skip = 60)
-timepoint2$DATE <- as.Date(fasta_df$Date[2])
 timepoint2$DAY <- fasta_df$day_of_infection[2]
 colnames(timepoint2)[10] <- "Variants"
 timepoint2 <- timepoint2[timepoint2$FILTER=="PASS",]
 
 timepoint3 <- read.delim("data/individual_timepoint03_day131_Illumina.ann.vcf", skip = 60)
-timepoint3$DATE <- as.Date(fasta_df$Date[3])
 timepoint3$DAY <- fasta_df$day_of_infection[3]
 colnames(timepoint3)[10] <- "Variants"
 timepoint3 <- timepoint3[timepoint3$FILTER=="PASS",]
 
 timepoint4 <- read.delim("data/individual_timepoint04_day159_Illumina.ann.vcf", skip = 60)
-timepoint4$DATE <- as.Date(fasta_df$Date[4])
 timepoint4$DAY <- fasta_df$day_of_infection[4]
 colnames(timepoint4)[10] <- "Variants"
 timepoint4 <- timepoint4[timepoint4$FILTER=="PASS",]
 
 timepoint5 <- read.delim("data/individual_timepoint05_day198_Illumina.ann.vcf", skip = 60)
-timepoint5$DATE <- as.Date(fasta_df$Date[5])
 timepoint5$DAY <- fasta_df$day_of_infection[5]
 colnames(timepoint5)[10] <- "Variants"
 timepoint5 <- timepoint5[timepoint5$FILTER=="PASS",]
 
 timepoint6 <- read.delim("data/individual_timepoint06_day297_Illumina.ann.vcf", skip = 60)
-timepoint6$DATE <- as.Date(fasta_df$Date[6])
 timepoint6$DAY <- fasta_df$day_of_infection[6]
 colnames(timepoint6)[10] <- "Variants"
 timepoint6 <- timepoint6[timepoint6$FILTER=="PASS",]
 
 timepoint7 <- read.delim("data/individual_timepoint07_day333_Illumina.ann.vcf", skip = 60)
-timepoint7$DATE <- as.Date(fasta_df$Date[7])
 timepoint7$DAY <- fasta_df$day_of_infection[7]
 colnames(timepoint7)[10] <- "Variants"
 timepoint7 <- timepoint7[timepoint7$FILTER=="PASS",]
 
 timepoint8 <- read.delim("data/individual_timepoint08_day388_Illumina.ann.vcf", skip = 60)
-timepoint8$DATE <- as.Date(fasta_df$Date[8])
 timepoint8$DAY <- fasta_df$day_of_infection[8]
 colnames(timepoint8)[10] <- "Variants"
 timepoint8 <- timepoint8[timepoint8$FILTER=="PASS",]
 
 timepoint9 <- read.delim("data/individual_timepoint09_day415_Illumina.ann.vcf", skip = 60)
-timepoint9$DATE <- as.Date(fasta_df$Date[9])
 timepoint9$DAY <- fasta_df$day_of_infection[9]
 colnames(timepoint9)[10] <- "Variants"
 timepoint9 <- timepoint9[timepoint9$FILTER=="PASS",]
 
 timepoint10 <- read.delim("data/individual_timepoint10_day417_Illumina.ann.vcf", skip = 60)
-timepoint10$DATE <- as.Date(fasta_df$Date[10])
 timepoint10$DAY <- fasta_df$day_of_infection[10]
 colnames(timepoint10)[10] <- "Variants"
 timepoint10 <- timepoint10[timepoint10$FILTER=="PASS",]
 
 timepoint11 <- read.delim("data/individual_timepoint11_day482_Illumina.ann.vcf", skip = 60)
-timepoint11$DATE <- as.Date(fasta_df$Date[11])
 timepoint11$DAY <- fasta_df$day_of_infection[11]
 colnames(timepoint11)[10] <- "Variants"
 timepoint11 <- timepoint11[timepoint11$FILTER=="PASS",]
 
 timepoint12 <- read.delim("data/individual_timepoint12_day488_Illumina.ann.vcf", skip = 60)
-timepoint12$DATE <- as.Date(fasta_df$Date[12])
 timepoint12$DAY <- fasta_df$day_of_infection[12]
 colnames(timepoint12)[10] <- "Variants"
 timepoint12 <- timepoint12[timepoint12$FILTER=="PASS",]
@@ -215,21 +196,16 @@ write.csv(full_vcf, paste("readables/alltimepoints_variants_",
                           ".csv", sep=""), quote=F, row.names=F)
 # full_vcf <- read.csv("readables/alltimepoints_variants_2022-03-02.csv")
 # str(full_vcf)
-# full_vcf$DATE <- as.Date(full_vcf$DATE)
 
-mutations <- full_vcf[,c("POS", "REF_POS_ALT", "GENE", "DATE", "DAY", "FREQ", 
+mutations <- full_vcf[,c("POS", "REF_POS_ALT", "GENE", "DAY", "FREQ", 
                          "DEPTH", "QUAL", "VARIANT_TYPE", "AA_EFFECT")]
 remove(full_vcf) ; remove(timepoint2) ; remove(timepoint3) ; remove(timepoint4) ; remove(timepoint5) ; remove(timepoint6) ; remove(timepoint7) ; remove(timepoint8) ; remove(timepoint9) ; remove(timepoint10) ; remove(timepoint11) ; remove(timepoint12)
 mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
-
-# mutations$SEQ_PLATFORM <- fasta_df$seq_platform[match(mutations$DATE, fasta_df$Date)]
 
 write.csv(mutations, paste("readables/alltimepoints_variants_reduced_",
                           Sys.Date(),
                           ".csv", sep=""), quote=F, row.names=F)
 # mutations <- read.csv("readables/alltimepoints_variants_reduced_2022-03-02.csv")
-# str(mutations)
-mutations$DATE <- as.Date(mutations$DATE, format = "%Y-%m-%d")
 mutations <- mutations[order(mutations$POS),] ; rownames(mutations) <- NULL
 mutations_raw <- mutations
 
@@ -241,13 +217,13 @@ E484A <- mutations[mutations$POS==23013,] ; E484A$FREQ <- as.numeric(E484A$FREQ)
 E484A_prefilter <- E484A
 E484A <- E484A[E484A$REF_POS_ALT=="A-23013-C",]
 E484A <- E484A[E484A$FREQ>0,]
-E484A <- E484A[order(E484A$DATE),] ; rownames(E484A) <- NULL
+E484A <- E484A[order(E484A$DAY),] ; rownames(E484A) <- NULL
 
 E484T <- mutations[mutations$POS==23012,] ; E484T$FREQ <- as.numeric(E484T$FREQ) ; E484T$DEPTH <- as.numeric(E484T$DEPTH)
 E484T_prefilter <- E484T
 E484T <- E484T_prefilter[E484T_prefilter$REF_POS_ALT=="G-23012-A",]
 E484T <- E484T[E484T$FREQ>0,]
-E484T <- E484T[order(E484T$DATE),] ; rownames(E484T) <- NULL
+E484T <- E484T[order(E484T$DAY),] ; rownames(E484T) <- NULL
 
 
 
@@ -280,75 +256,73 @@ write.csv(consensus_mutations,  paste("readables/consensus_mutations_",
                                       Sys.Date(),".csv", sep = ""), 
                                       quote=F, row.names = F)
 # consensus_mutations <- read.csv("readables/consensus_mutations_2022-03-02.csv")
-consensus_mutations$DATE <- as.Date(consensus_mutations$DATE, format = "%Y-%m-%d")
 
 
 
 ### CREATING DATASET OF MUTATIONS REACHING CONSENSUS BY DAY 297 #### 
 ### ----------------------------------------------------------- #
-consensus_by_june <- consensus_mutations
-consensus_by_june$DETECTED_BEFORE_DAY_297 <- NA
-for (i in unique(consensus_by_june$REF_POS_ALT)){
+consensus_by_d297 <- consensus_mutations
+consensus_by_d297$DETECTED_BEFORE_DAY_297 <- NA
+for (i in unique(consensus_by_d297$REF_POS_ALT)){
 
-    mut_sub <- consensus_by_june[consensus_by_june$REF_POS_ALT==i,]
+    mut_sub <- consensus_by_d297[consensus_by_d297$REF_POS_ALT==i,]
   
   if (
-    !(as.Date("2021-06-29") %in% mut_sub$DATE)
+    !(297 %in% mut_sub$DAY)
   ) {
-    consensus_by_june <- consensus_by_june[!consensus_by_june$REF_POS_ALT==i,]
+    consensus_by_d297 <- consensus_by_d297[!consensus_by_d297$REF_POS_ALT==i,]
     
   } else {
     next
   }
-  rownames(consensus_by_june) <- NULL
+  rownames(consensus_by_d297) <- NULL
 }
-for (i in unique(consensus_by_june$REF_POS_ALT)){
+for (i in unique(consensus_by_d297$REF_POS_ALT)){
 
-  if (which(unique(consensus_by_june$REF_POS_ALT)==i) %% 100 == 0){
+  if (which(unique(consensus_by_d297$REF_POS_ALT)==i) %% 100 == 0){
     print(paste("processing mutation", i, sep = " "))
   }
 
-  mut_sub <- consensus_by_june[consensus_by_june$REF_POS_ALT==i,]
+  mut_sub <- consensus_by_d297[consensus_by_d297$REF_POS_ALT==i,]
 
   if (min(mut_sub$DAY)==297){
 
-    # consensus_by_june <- consensus_by_june[!consensus_by_june$REF_POS_ALT==i,]
-    consensus_by_june[consensus_by_june$REF_POS_ALT==i, "DETECTED_BEFORE_DAY_297"] <- F
+    # consensus_by_d297 <- consensus_by_d297[!consensus_by_d297$REF_POS_ALT==i,]
+    consensus_by_d297[consensus_by_d297$REF_POS_ALT==i, "DETECTED_BEFORE_DAY_297"] <- F
 
   } else {
     # next
-    consensus_by_june[consensus_by_june$REF_POS_ALT==i, "DETECTED_BEFORE_DAY_297"] <- T
+    consensus_by_d297[consensus_by_d297$REF_POS_ALT==i, "DETECTED_BEFORE_DAY_297"] <- T
   }
-  rownames(consensus_by_june) <- NULL
+  rownames(consensus_by_d297) <- NULL
 }
-for (i in unique(consensus_by_june$REF_POS_ALT)){
+for (i in unique(consensus_by_d297$REF_POS_ALT)){
   
-  if (which(unique(consensus_by_june$REF_POS_ALT)==i) %% 100 == 0){
+  if (which(unique(consensus_by_d297$REF_POS_ALT)==i) %% 100 == 0){
     print(paste("processing mutation", i, sep = " "))
   }
   
-  mut_sub <- consensus_by_june[consensus_by_june$REF_POS_ALT==i,]
+  mut_sub <- consensus_by_d297[consensus_by_d297$REF_POS_ALT==i,]
   
   if (
-    mut_sub[mut_sub$DATE==as.Date("2021-06-29"), "FREQ"] < 0.5 |
-    T %in% (mut_sub[mut_sub$DATE < as.Date("2021-06-29"), "FREQ"] >= 0.5)
+    mut_sub[mut_sub$DAY==297, "FREQ"] < 0.5 |
+    T %in% (mut_sub[mut_sub$DAY < 297, "FREQ"] >= 0.5)
   ) {
-    consensus_by_june <- consensus_by_june[!consensus_by_june$REF_POS_ALT==i,]
+    consensus_by_d297 <- consensus_by_d297[!consensus_by_d297$REF_POS_ALT==i,]
     
   } else {
     next
   }
-  rownames(consensus_by_june) <- NULL
+  rownames(consensus_by_d297) <- NULL
 }
 
-consensus_by_june <- consensus_by_june[consensus_by_june$DEPTH>0,]
-write.csv(consensus_by_june, paste("readables/consensus_by_june_variants_",
+consensus_by_d297 <- consensus_by_d297[consensus_by_d297$DEPTH>0,]
+write.csv(consensus_by_d297, paste("readables/consensus_by_d297_variants_",
                                    Sys.Date(),".csv", sep = ""),
           quote = F, row.names = F)
-# consensus_by_june <- read.csv("readables/consensus_by_june_variants_2022-03-02.csv")
-# consensus_by_june$DATE <- as.Date(consensus_by_june$DATE, format = "%Y-%m-%d")
+# consensus_by_d297 <- read.csv("readables/consensus_by_d297_variants_2022-03-02.csv")
 
-supplemental_table2 <- consensus_by_june
+supplemental_table2 <- consensus_by_d297
 supplemental_table2 <- supplemental_table2[,c("POS", "REF_POS_ALT", "DAY",
                                               "GENE", "VARIANT_TYPE", "AA_EFFECT",
                                               "DETECTED_BEFORE_DAY_297")]
@@ -400,8 +374,8 @@ plot(mutations$DAY, mutations$FREQ,
 grid()
 
 # plotting mutations that increase to consensus frequency (50% or higher) at the June time point
-for (i in unique(consensus_by_june$REF_POS_ALT)){
-  mut_sub <- consensus_by_june[consensus_by_june$REF_POS_ALT==i,]
+for (i in unique(consensus_by_d297$REF_POS_ALT)){
+  mut_sub <- consensus_by_d297[consensus_by_d297$REF_POS_ALT==i,]
   
   lines(mut_sub$DAY, mut_sub$FREQ, col="gray")
   # points(mut_sub$DAY, mut_sub$FREQ, pch = 20, col = "darkgray", cex = 0.8)
@@ -417,8 +391,8 @@ for (i in unique(consensus_by_june$REF_POS_ALT)){
 E484A_plotting <- E484A
 for (i in 1:nrow(E484A_plotting)){
   
-  if (E484A_plotting$DATE[i] %in% E484T$DATE){
-    E484A_plotting$FREQ[i] <- E484A_plotting$FREQ[i] - E484T[E484T$DATE==E484A_plotting$DATE[i], "FREQ"]
+  if (E484A_plotting$DAY[i] %in% E484T$DAY){
+    E484A_plotting$FREQ[i] <- E484A_plotting$FREQ[i] - E484T[E484T$DAY==E484A_plotting$DAY[i], "FREQ"]
   }
   
 }
@@ -438,7 +412,7 @@ abline(h=0.5, lty = 5)
 
 legend(median(fasta_df$day_of_infection), 1.05, 
        legend=c("E484A", "E484T", 
-                paste(length(unique(consensus_by_june$REF_POS_ALT)), 
+                paste(length(unique(consensus_by_d297$REF_POS_ALT)), 
                       "iSNVs more frequent in June", sep = " "),
                 "Typical Illumina frequency cutoff",
                 "consensus frequency cutoff"),

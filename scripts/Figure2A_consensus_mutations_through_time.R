@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ### PLOTTING CONSENSUS MUTATIONS THROUGH TIME
-# UPDATED: 24-Feb-2022 by Nicholas R. Minor
+# UPDATED: 29-Mar-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will identify and plot single-nucleotide differences between each
@@ -21,11 +21,10 @@ args = commandArgs(trailingOnly=TRUE)
 
 ### SETUP ####
 ### ---- #
-library(Biostrings)
-library(tidyverse)
-library(grid)
-library(gridExtra)
-library(gridGraphics)
+list.of.packages <- c("Biostrings", "tidyverse", "grid", "gridExtra", "gridGraphics")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+invisible(lapply(list.of.packages, library, character.only = TRUE))
 data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 
@@ -38,10 +37,10 @@ seq_names <- names(patient_fasta)
 fasta_df <- data.frame(seq_names) ; remove(patient_fasta)
 fasta_df$seq_names <- str_replace_all(fasta_df$seq_names, fixed(" | "), ",")
 fasta_df <- separate(data = fasta_df, col = 1,
-                     into = c("Sample_ID", "Date"),
+                     into = c("Sample_ID", "day_of_infection"),
                      sep = ",")
-fasta_df$Date <- as.Date(fasta_df$Date, "%Y %b %d")
-fasta_df$day_of_infection <- c(113,124,131,159,198,297,333,388,415,417,482,486)
+fasta_df$day_of_infection <- str_remove_all(fasta_df$day_of_infection, "Infection Day ")
+fasta_df$day_of_infection <- as.numeric(fasta_df$day_of_infection)
 fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina", "ONT", "ONT", "ONT", "ONT", "ONT")
 
 
@@ -52,84 +51,72 @@ timepoint1 <- read.delim("data/USA_WI-WSLH-202168_2020_consensus_variant_table.t
 timepoint1 <- timepoint1[timepoint1$ALT!="N",]
 timepoint1 <- timepoint1[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint1$DATE <- as.Date(fasta_df$Date[1])
 timepoint1$DAY <- fasta_df$day_of_infection[1]
 
 timepoint2 <- read.delim("data/USA_WI-UW-2731_2021_consensus_variant_table.tsv")
 timepoint2 <- timepoint2[timepoint2$ALT!="N",]
 timepoint2 <- timepoint2[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint2$DATE <- as.Date(fasta_df$Date[2])
 timepoint2$DAY <- fasta_df$day_of_infection[2]
 
 timepoint3 <- read.delim("data/USA_WI-UW-2731-T2_2021_consensus_variant_table.tsv")
 timepoint3 <- timepoint3[timepoint3$ALT!="N",]
 timepoint3 <- timepoint3[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint3$DATE <- as.Date(fasta_df$Date[3])
 timepoint3$DAY <- fasta_df$day_of_infection[3]
 
 timepoint4 <- read.delim("data/USA_WI-UW-2731-T3_2021_consensus_variant_table.tsv")
 timepoint4 <- timepoint4[timepoint4$ALT!="N",]
 timepoint4 <- timepoint4[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint4$DATE <- as.Date(fasta_df$Date[4])
 timepoint4$DAY <- fasta_df$day_of_infection[4]
 
 timepoint5 <- read.delim("data/USA_WI-UW-2731-T4_2021_consensus_variant_table.tsv")
 timepoint5 <- timepoint5[timepoint5$ALT!="N",]
 timepoint5 <- timepoint5[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint5$DATE <- as.Date(fasta_df$Date[5])
 timepoint5$DAY <- fasta_df$day_of_infection[5]
 
 timepoint6 <- read.delim("data/USA_WI-UW-5350_2021_consensus_variant_table.tsv")
 timepoint6 <- timepoint6[timepoint6$ALT!="N",]
 timepoint6 <- timepoint6[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint6$DATE <- as.Date(fasta_df$Date[6])
 timepoint6$DAY <- fasta_df$day_of_infection[6]
 
 timepoint7 <- read.delim("data/USA_WI-WSLH-217727_2021_consensus_variant_table.tsv")
 timepoint7 <- timepoint7[timepoint7$ALT!="N",]
 timepoint7 <- timepoint7[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint7$DATE <- as.Date(fasta_df$Date[7])
 timepoint7$DAY <- fasta_df$day_of_infection[7]
 
 timepoint8 <- read.delim("data/USA_WI-UW-PI08_2021_consensus_variant_table.tsv")
 timepoint8 <- timepoint8[timepoint8$ALT!="N",]
 timepoint8 <- timepoint8[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint8$DATE <- as.Date(fasta_df$Date[8])
 timepoint8$DAY <- fasta_df$day_of_infection[8]
 
 timepoint9 <- read.delim("data/USA_WI-UW-PI09_2021_consensus_variant_table.tsv")
 timepoint9 <- timepoint9[timepoint9$ALT!="N",]
 timepoint9 <- timepoint9[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint9$DATE <- as.Date(fasta_df$Date[9])
 timepoint9$DAY <- fasta_df$day_of_infection[9]
 
 timepoint10 <- read.delim("data/USA_WI-UW-PI10_2021_consensus_variant_table.tsv")
 timepoint10 <- timepoint10[timepoint10$ALT!="N",]
 timepoint10 <- timepoint10[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint10$DATE <- as.Date(fasta_df$Date[10])
 timepoint10$DAY <- fasta_df$day_of_infection[10]
 
 timepoint11 <- read.delim("data/USA_WI-UW-PI11_2021_consensus_variant_table.tsv")
 timepoint11 <- timepoint11[timepoint11$ALT!="N",]
 timepoint11 <- timepoint11[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint11$DATE <- as.Date(fasta_df$Date[11])
 timepoint11$DAY <- fasta_df$day_of_infection[11]
 
 timepoint12 <- read.delim("data/USA_WI-UW-PI12_2022_consensus_variant_table.tsv")
 timepoint12 <- timepoint12[timepoint12$ALT!="N",]
 timepoint12 <- timepoint12[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
-timepoint12$DATE <- as.Date(fasta_df$Date[12])
 timepoint12$DAY <- fasta_df$day_of_infection[12]
 
 variants <- rbind(timepoint1, timepoint2, timepoint3, timepoint4, timepoint5, 
@@ -198,7 +185,6 @@ for (i in 1:length(lowcov_docs)){
   tmp <- read.delim(paste(lowcov_filepath, lowcov_docs[i], sep = "/"), 
                     header = F, sep = "\t")[-1]
   colnames(tmp) <- c("start", "stop", "depth")
-  tmp$Date <- fasta_df$Date[i]
   tmp$day_of_infection <- fasta_df$day_of_infection[i]
   assign(name, tmp)
   
@@ -309,7 +295,6 @@ pdf("visuals/fig2a_consensus_mutations.pdf",
   
   # Plotting the count of mutations at each timepoint
   variant_counts <- data.frame("day" = fasta_df$day_of_infection,
-                               "date" = fasta_df$Date,
                                "no_of_mutations" = rep(NA, times= length(fasta_df$day_of_infection)))
   for (i in unique(variants$DAY)){
     day_count <- nrow(variants[variants$DAY==i,])

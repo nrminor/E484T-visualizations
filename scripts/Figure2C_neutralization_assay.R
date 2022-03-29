@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ### PLOTTING THE RESULTS OF ANTIBODY NEUTRALIZATION ASSAY
-# UPDATED: 23-Feb-2022 by Nicholas R. Minor
+# UPDATED: 29-Mar-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will import the neutralization data and plot the results.
@@ -21,10 +21,7 @@ args = commandArgs(trailingOnly=TRUE)
 list.of.packages <- c("Biostrings", "tidyverse", "plotrix")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
-
-library(Biostrings)
-library(tidyverse)
-library(plotrix)
+invisible(lapply(list.of.packages, library, character.only = TRUE))
 data_filepath = args[1] ### OR INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 

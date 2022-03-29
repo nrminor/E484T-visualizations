@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ### PLOTTING QRT-PCR CT VALUES OVER THE COURSE OF A 433-DAY PROLONGED INFECTION
-# UPDATED: 02-Mar-2022 by Nicholas R. Minor
+# UPDATED: 29-Mar-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will simply import and plot the available Ct values. 
@@ -27,12 +27,14 @@ if (length(args)==0) {
 
 ### PREPARING THE ENVIRONMENT AND READING IN DATA ####
 ### --------------------------------------------- #
-library(ggplot2)
+list.of.packages <- "ggplot2"
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
 setwd(data_filepath)
 Ct <- read.csv("data/Ct_timeline.csv")
-Ct$Encounter.date <- as.Date(Ct$Encounter.date, format = "%m/%d/%y")
 Ct$SARS.CoV.2.PCR.Ct <- round(Ct$SARS.CoV.2.PCR.Ct, digits = 1)
 Ct <- Ct[is.na(Ct$SARS.CoV.2.PCR.Ct)==F,]
 
