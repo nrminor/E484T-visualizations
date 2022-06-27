@@ -1,0 +1,24 @@
+name: prolonged-infection
+channels:
+  - conda-forge
+  - bioconda
+  - main
+  - r
+dependencies:
+  - nextflow=22.04.0
+  - R
+  - r-ggplot2
+  - bioconductor-biostrings
+  - r-tidyverse
+  - r-gridgraphics
+  - r-gridextra
+  - r-plotrix
+  - r-rcolorbrewer
+  - pangolin
+  - sra-tools=2.10.1
+  - minimap2=2.24
+  - samtools=1.14
+  - bbmap=38.93
+  - ivar=1.3.1
+  - covtobed=1.2.0
+  - nextstrain=20200304

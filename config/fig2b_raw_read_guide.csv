@@ -1,0 +1,13 @@
+sra_id,file_basename,platform,primer_set
+SRR19159451,timepoint01_day113_ONT,ont,ref/ARTICv3_primers.bed
+SRR19159450,timepoint02_day124_ONT,ont,ref/Midnightv1_primers.bed
+SRR19159436,timepoint03_day131_ONT,ont,ref/Midnightv1_primers.bed
+SRR19159434,timepoint04_day159_ONT,ont,ref/Midnightv1_primers.bed
+SRR19159432,timepoint05_day198_ONT,ont,ref/ARTICv3_primers.bed
+SRR19159430,timepoint06_day297_ONT,ont,ref/Midnightv1_primers.bed
+SRR19159448,timepoint07_day333_Illumina,illumina,ref/ARTICv3_primers.bed
+SRR19159447,timepoint08_day388_ONT,ont,ref/Midnightv1_primers.bed
+SRR19159444,timepoint09_day415_ONT,ont,ref/Midnightv1_primers.bed
+SRR19159442,timepoint10_day417_ONT,ont,ref/Midnightv1_primers.bed
+SRR19159441,timepoint11_day482_ONT,ont,ref/Midnightv1_primers.bed
+SRR19159438,timepoint12_day488_ONT,ont,ref/Midnightv1_primers.bed

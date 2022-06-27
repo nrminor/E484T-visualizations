@@ -25,14 +25,14 @@ list.of.packages <- c("Biostrings", "tidyverse", "grid", "gridExtra", "gridGraph
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 invisible(lapply(list.of.packages, library, character.only = TRUE))
-data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
-setwd(data_filepath)
+
+input_fasta = args[1]
 
 
 
 ### FASTA PREP ####
 ### --------- #
-patient_fasta <- readDNAStringSet("data/alltimepoints_20220222.fasta")
+patient_fasta <- readDNAStringSet(input_fasta)
 seq_names <- names(patient_fasta)
 fasta_df <- data.frame(seq_names) ; remove(patient_fasta)
 fasta_df$seq_names <- str_replace_all(fasta_df$seq_names, fixed(" | "), ",")
@@ -47,76 +47,76 @@ fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina",
 
 ### VCF PREP ####
 ### ------- #
-timepoint1 <- read.delim("data/USA_WI-WSLH-202168_2020_consensus_variant_table.tsv")
+timepoint1 <- read.delim("USA_WI-WSLH-202168_2020_consensus_variant_table.tsv")
 timepoint1 <- timepoint1[timepoint1$ALT!="N",]
 timepoint1 <- timepoint1[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint1$DAY <- fasta_df$day_of_infection[1]
 
-timepoint2 <- read.delim("data/USA_WI-UW-2731_2021_consensus_variant_table.tsv")
+timepoint2 <- read.delim("USA_WI-UW-2731_2021_consensus_variant_table.tsv")
 timepoint2 <- timepoint2[timepoint2$ALT!="N",]
 timepoint2 <- timepoint2[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint2$DAY <- fasta_df$day_of_infection[2]
 
-timepoint3 <- read.delim("data/USA_WI-UW-2731-T2_2021_consensus_variant_table.tsv")
+timepoint3 <- read.delim("USA_WI-UW-2731-T2_2021_consensus_variant_table.tsv")
 timepoint3 <- timepoint3[timepoint3$ALT!="N",]
 timepoint3 <- timepoint3[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint3$DAY <- fasta_df$day_of_infection[3]
 
-timepoint4 <- read.delim("data/USA_WI-UW-2731-T3_2021_consensus_variant_table.tsv")
+timepoint4 <- read.delim("USA_WI-UW-2731-T3_2021_consensus_variant_table.tsv")
 timepoint4 <- timepoint4[timepoint4$ALT!="N",]
 timepoint4 <- timepoint4[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint4$DAY <- fasta_df$day_of_infection[4]
 
-timepoint5 <- read.delim("data/USA_WI-UW-2731-T4_2021_consensus_variant_table.tsv")
+timepoint5 <- read.delim("USA_WI-UW-2731-T4_2021_consensus_variant_table.tsv")
 timepoint5 <- timepoint5[timepoint5$ALT!="N",]
 timepoint5 <- timepoint5[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint5$DAY <- fasta_df$day_of_infection[5]
 
-timepoint6 <- read.delim("data/USA_WI-UW-5350_2021_consensus_variant_table.tsv")
+timepoint6 <- read.delim("USA_WI-UW-5350_2021_consensus_variant_table.tsv")
 timepoint6 <- timepoint6[timepoint6$ALT!="N",]
 timepoint6 <- timepoint6[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint6$DAY <- fasta_df$day_of_infection[6]
 
-timepoint7 <- read.delim("data/USA_WI-WSLH-217727_2021_consensus_variant_table.tsv")
+timepoint7 <- read.delim("USA_WI-WSLH-217727_2021_consensus_variant_table.tsv")
 timepoint7 <- timepoint7[timepoint7$ALT!="N",]
 timepoint7 <- timepoint7[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint7$DAY <- fasta_df$day_of_infection[7]
 
-timepoint8 <- read.delim("data/USA_WI-UW-PI08_2021_consensus_variant_table.tsv")
+timepoint8 <- read.delim("USA_WI-UW-PI08_2021_consensus_variant_table.tsv")
 timepoint8 <- timepoint8[timepoint8$ALT!="N",]
 timepoint8 <- timepoint8[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint8$DAY <- fasta_df$day_of_infection[8]
 
-timepoint9 <- read.delim("data/USA_WI-UW-PI09_2021_consensus_variant_table.tsv")
+timepoint9 <- read.delim("USA_WI-UW-PI09_2021_consensus_variant_table.tsv")
 timepoint9 <- timepoint9[timepoint9$ALT!="N",]
 timepoint9 <- timepoint9[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
                             "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint9$DAY <- fasta_df$day_of_infection[9]
 
-timepoint10 <- read.delim("data/USA_WI-UW-PI10_2021_consensus_variant_table.tsv")
+timepoint10 <- read.delim("USA_WI-UW-PI10_2021_consensus_variant_table.tsv")
 timepoint10 <- timepoint10[timepoint10$ALT!="N",]
 timepoint10 <- timepoint10[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
-                            "REF_AA", "ALT_CODON", "ALT_AA")]
+                              "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint10$DAY <- fasta_df$day_of_infection[10]
 
-timepoint11 <- read.delim("data/USA_WI-UW-PI11_2021_consensus_variant_table.tsv")
+timepoint11 <- read.delim("USA_WI-UW-PI11_2021_consensus_variant_table.tsv")
 timepoint11 <- timepoint11[timepoint11$ALT!="N",]
 timepoint11 <- timepoint11[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
-                            "REF_AA", "ALT_CODON", "ALT_AA")]
+                              "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint11$DAY <- fasta_df$day_of_infection[11]
 
-timepoint12 <- read.delim("data/USA_WI-UW-PI12_2022_consensus_variant_table.tsv")
+timepoint12 <- read.delim("USA_WI-UW-PI12_2022_consensus_variant_table.tsv")
 timepoint12 <- timepoint12[timepoint12$ALT!="N",]
 timepoint12 <- timepoint12[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
-                            "REF_AA", "ALT_CODON", "ALT_AA")]
+                              "REF_AA", "ALT_CODON", "ALT_AA")]
 timepoint12$DAY <- fasta_df$day_of_infection[12]
 
 variants <- rbind(timepoint1, timepoint2, timepoint3, timepoint4, timepoint5, 
@@ -175,15 +175,14 @@ SARS_genes <- data.frame("name" = c("ORF1a", "ORF1b", "S", NA, NA, NA, NA, NA, N
 
 ### LOW COVERAGE REGIONS ####
 ### -------------------- #
-lowcov_filepath <- paste0(getwd(), "/data/low_coverage_regions", sep = "")
-lowcov_docs <- list.files(lowcov_filepath)
+lowcov_docs <- list.files(getwd(), pattern = "*.bed")
 for (i in 1:length(lowcov_docs)){
   name <- lowcov_docs[i]
   name <- str_replace(name, ".bed", "")
   name <- paste("lowcov", name, sep = "_")
   
-  tmp <- read.delim(paste(lowcov_filepath, lowcov_docs[i], sep = "/"), 
-                    header = F, sep = "\t")[-1]
+  tmp <- read.delim(lowcov_docs[i], 
+                    header = F, sep = "\t")[,-1]
   colnames(tmp) <- c("start", "stop", "depth")
   tmp$day_of_infection <- fasta_df$day_of_infection[i]
   assign(name, tmp)
@@ -227,89 +226,89 @@ lowcov <- lowcov[,-3] ; lowcov <- lowcov[,-ncol(lowcov)]
 
 ### VERTICAL PLOT ####
 ### ------------ #
-pdf("visuals/fig2a_consensus_mutations.pdf",
+pdf("fig2a_consensus_mutations.pdf",
     width = 8, height = 6)
 
-  plot(1,1, ylim = c(0,30000), xlim=c(-15, 500), type = "n",
-      ylab = "SARS-CoV-2 Genome Position", xlab = "Days Post-Diagnosis", 
-      frame.plot = F, cex.axis = 1, yaxt = "n")
-  axis(side = 2, at = c(0,5000,10000,15000,20000,25000,30000), cex.axis = 0.8,
-       col = "white", col.ticks = "black", las = 1)
-  
-  # Plotting SARS-CoV-2 Genes
-  for (i in 1:nrow(SARS_genes)){
-    polygon(y = c(SARS_genes[i,"start"], SARS_genes[i,"start"], 
-                  SARS_genes[i,"stop"], SARS_genes[i,"stop"]),  # y-coordinates of gene 
-            x = c(-30, 0, 0, -30),    # x-Coordinates of polygon
-            col = SARS_genes[i,"col"], border = F, xpd = T)
-    text(y = SARS_genes[i,"start"] + (SARS_genes[i,"stop"]-SARS_genes[i,"start"])/2, 
-         x = -15, labels = SARS_genes[i, "name"], srt = 90, col = "black", cex = 1)
-  }
-  for (i in 1:nrow(SARS_genes)){
-    rgb <- c(col2rgb(SARS_genes[i,"col"], alpha = T))
-    rgb_faded <- round(rgb/c(1,1,1,4))
-    col_tmp <- rgb(rgb_faded[1], rgb_faded[2], rgb_faded[3], rgb_faded[4], 
-                   max = 255)
-    polygon(y = c(SARS_genes[i,"start"], SARS_genes[i,"start"], 
-                  SARS_genes[i,"stop"], SARS_genes[i,"stop"]),  # coordinates of gene 
-            x = c(0, 500, 500, 0),    # Y-Coordinates of polygon
-            col = col_tmp, border = F)
-  }
+plot(1,1, ylim = c(0,30000), xlim=c(-15, 500), type = "n",
+     ylab = "SARS-CoV-2 Genome Position", xlab = "Days Post-Diagnosis", 
+     frame.plot = F, cex.axis = 1, yaxt = "n")
+axis(side = 2, at = c(0,5000,10000,15000,20000,25000,30000), cex.axis = 0.8,
+     col = "white", col.ticks = "black", las = 1)
 
-  # Plotting regions with coverage lower than 20 reads
-  for (i in 1:nrow(lowcov)){
-    polygon(y = c(lowcov[i,"start"], lowcov[i,"start"],
-                  lowcov[i,"stop"], lowcov[i,"stop"]),  # coordinates of low cov region
-            x = c(lowcov[i, "day_of_infection"]-10, lowcov[i, "day_of_infection"]+10,
-                  lowcov[i, "day_of_infection"]+10, lowcov[i, "day_of_infection"]-10),    # X-Coordinates of polygon
-            col = "white", border = F)
-  }
+# Plotting SARS-CoV-2 Genes
+for (i in 1:nrow(SARS_genes)){
+  polygon(y = c(SARS_genes[i,"start"], SARS_genes[i,"start"], 
+                SARS_genes[i,"stop"], SARS_genes[i,"stop"]),  # y-coordinates of gene 
+          x = c(-30, 0, 0, -30),    # x-Coordinates of polygon
+          col = SARS_genes[i,"col"], border = F, xpd = T)
+  text(y = SARS_genes[i,"start"] + (SARS_genes[i,"stop"]-SARS_genes[i,"start"])/2, 
+       x = -15, labels = SARS_genes[i, "name"], srt = 90, col = "black", cex = 1)
+}
+for (i in 1:nrow(SARS_genes)){
+  rgb <- c(col2rgb(SARS_genes[i,"col"], alpha = T))
+  rgb_faded <- round(rgb/c(1,1,1,4))
+  col_tmp <- rgb(rgb_faded[1], rgb_faded[2], rgb_faded[3], rgb_faded[4], 
+                 max = 255)
+  polygon(y = c(SARS_genes[i,"start"], SARS_genes[i,"start"], 
+                SARS_genes[i,"stop"], SARS_genes[i,"stop"]),  # coordinates of gene 
+          x = c(0, 500, 500, 0),    # Y-Coordinates of polygon
+          col = col_tmp, border = F)
+}
+
+# Plotting regions with coverage lower than 20 reads
+for (i in 1:nrow(lowcov)){
+  polygon(y = c(lowcov[i,"start"], lowcov[i,"start"],
+                lowcov[i,"stop"], lowcov[i,"stop"]),  # coordinates of low cov region
+          x = c(lowcov[i, "day_of_infection"]-10, lowcov[i, "day_of_infection"]+10,
+                lowcov[i, "day_of_infection"]+10, lowcov[i, "day_of_infection"]-10),    # X-Coordinates of polygon
+          col = "white", border = F)
+}
+
+# Plotting all mutations
+for (i in unique(variants$REF_POS_ALT)){
+  plotting_sub <- variants[variants$REF_POS_ALT==i,]
+  points(y = plotting_sub$POS, x = plotting_sub$DAY,
+         type = "p", pch = 20, col = "#bcbcbc")
+}
+segments(y0 = -1200, y1 = 29800, x0=198, col = "red")
+
+# Plotting "unfixed" mutations
+fixed <- rep(NA, times = length(unique(variants$REF_POS_ALT)))
+for (i in 1:length(fixed)){
+  fixed[i] <- nrow(variants[variants$REF_POS_ALT==unique(variants$REF_POS_ALT)[i],])==12
+}
+
+for (i in unique(variants$REF_POS_ALT)[!fixed]){
+  plotting_sub <- variants[variants$REF_POS_ALT==i, ]
   
-  # Plotting all mutations
-  for (i in unique(variants$REF_POS_ALT)){
-    plotting_sub <- variants[variants$REF_POS_ALT==i,]
-    points(y = plotting_sub$POS, x = plotting_sub$DAY,
-           type = "p", pch = 20, col = "#bcbcbc")
-  }
-  segments(y0 = -1200, y1 = 29800, x0=198, col = "red")
+  points(y = plotting_sub$POS, x = plotting_sub$DAY, pch = 16, col = "black", cex = 1.2)
   
-  # Plotting "unfixed" mutations
-  fixed <- rep(NA, times = length(unique(variants$REF_POS_ALT)))
-  for (i in 1:length(fixed)){
-    fixed[i] <- nrow(variants[variants$REF_POS_ALT==unique(variants$REF_POS_ALT)[i],])==12
-  }
-  
-  for (i in unique(variants$REF_POS_ALT)[!fixed]){
-    plotting_sub <- variants[variants$REF_POS_ALT==i, ]
-    
-    points(y = plotting_sub$POS, x = plotting_sub$DAY, pch = 16, col = "black", cex = 1.2)
-    
-  }
-  
-  # Plotting S E484T specifically
-  points(y = 23012, x = 297, 
-         pch = 2, cex = 1.5, col = "red")
-  points(y = 23012, x = 333, 
-         pch = 2, cex = 1.5, col = "red")
-  text(y = 23700, x = 316, labels = "E484T", col = "#7e7e7e", cex = 1)
-  
-  # Plotting the count of mutations at each timepoint
-  variant_counts <- data.frame("day" = fasta_df$day_of_infection,
-                               "no_of_mutations" = rep(NA, times= length(fasta_df$day_of_infection)))
-  for (i in unique(variants$DAY)){
-    day_count <- nrow(variants[variants$DAY==i,])
-    text(y = 30500, x = i, labels = day_count, 
-         col = "#7e7e7e", cex = 0.5)
-    variant_counts[variant_counts$day==i,"no_of_mutations"] <- day_count
-  }
-  write.csv(variant_counts, "readables/patient_variant_counts.csv",
-            row.names = F, )
-  
-  # legend(200, 28000, legend=c("ancestral", "derived during infection"), 
-  #        pch = c(20, 16),
-  #        col = c("#e5e5e5", "#7e7e7e", "red"),
-  #        bty = "n", cex = 1, bg="transparent", ncol = 2, xpd = T, 
-  #        xjust = 0.5, yjust = 0)
+}
+
+# Plotting S E484T specifically
+points(y = 23012, x = 297, 
+       pch = 2, cex = 1.5, col = "red")
+points(y = 23012, x = 333, 
+       pch = 2, cex = 1.5, col = "red")
+text(y = 23700, x = 316, labels = "E484T", col = "#7e7e7e", cex = 1)
+
+# Plotting the count of mutations at each timepoint
+variant_counts <- data.frame("day" = fasta_df$day_of_infection,
+                             "no_of_mutations" = rep(NA, times= length(fasta_df$day_of_infection)))
+for (i in unique(variants$DAY)){
+  day_count <- nrow(variants[variants$DAY==i,])
+  text(y = 30500, x = i, labels = day_count, 
+       col = "#7e7e7e", cex = 0.5)
+  variant_counts[variant_counts$day==i,"no_of_mutations"] <- day_count
+}
+write.csv(variant_counts, "patient_variant_counts.csv",
+          row.names = F)
+
+# legend(200, 28000, legend=c("ancestral", "derived during infection"), 
+#        pch = c(20, 16),
+#        col = c("#e5e5e5", "#7e7e7e", "red"),
+#        bty = "n", cex = 1, bg="transparent", ncol = 2, xpd = T, 
+#        xjust = 0.5, yjust = 0)
 # }
 dev.off()
 

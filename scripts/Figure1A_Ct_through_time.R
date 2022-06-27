@@ -32,9 +32,9 @@ new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"
 if(length(new.packages)) install.packages(new.packages)
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 
-data_filepath = args[1]  ### OR INSERT YOUR FILE PATH HERE ###
-setwd(data_filepath)
-Ct <- read.csv("data/Ct_timeline.csv")
+ct_values = args[1]
+
+Ct <- read.csv(ct_values)
 Ct$SARS.CoV.2.PCR.Ct <- round(Ct$SARS.CoV.2.PCR.Ct, digits = 1)
 Ct <- Ct[is.na(Ct$SARS.CoV.2.PCR.Ct)==F,]
 
@@ -42,7 +42,7 @@ Ct <- Ct[is.na(Ct$SARS.CoV.2.PCR.Ct)==F,]
 
 ### PLOTTING DATA ####
 ### ------------- #
-pdf(file = "visuals/fig1a_ct_values_thru_time.pdf", 
+pdf(file = "fig1a_ct_values_thru_time.pdf", 
     width = 8, height = 6)
 
 Ct_plot <- ggplot(data = Ct, aes(x = Encounter.days.post.first.SARS.CoV.2.test, 

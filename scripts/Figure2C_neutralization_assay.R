@@ -22,20 +22,20 @@ list.of.packages <- c("Biostrings", "tidyverse", "plotrix")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 invisible(lapply(list.of.packages, library, character.only = TRUE))
-data_filepath = args[1] ### OR INSERT YOUR FILE PATH HERE ###
-setwd(data_filepath)
+
+neut_data = args[1]
 
 
 
 ### ANTIBODY DATA ####
 ### ------------- #
-antibody <- read.csv("data/antibody_potency.csv")
+antibody <- read.csv(neut_data)
 
 
 
 ### PLOTTING ###
 ### -------- #
-pdf(file = "visuals/fig2c_neutralization_assay.pdf", 
+pdf(file = "fig2c_neutralization_assay.pdf", 
     width = 8, height = 7)
 palette = c("#FFD300", "#0C328A")
 par(bty="n") # deleting the box

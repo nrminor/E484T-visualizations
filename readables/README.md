@@ -1,1 +1,0 @@
-This directory will contain a number of useful tables with information from throughout the workflow. These tables will largely describe amino acid effects of single nucelotide variants identified in the data.
