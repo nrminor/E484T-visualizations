@@ -2,19 +2,8 @@
 
 nextflow.enable.dsl = 2
 
-// Define some helpful runtime parameters
-params.primer_key = "$baseDir/config/fig2b_raw_read_guide.csv"
-params.refdir = "$baseDir/resources"
-params.refseq = "$baseDir/resources/reference.fasta"
-params.refgff = "$baseDir/resources/MN9089473.gff3"
-params.fasta_sep = "$baseDir/scripts/fasta_sep.R"
-params.Ct_script = "$baseDir/scripts/Figure1A_Ct_through_time.R"
-params.Ct_data = "$baseDir/data/Ct_timeline.csv"
-params.cons_mutations = "$baseDir/scripts/Figure2A_consensus_mutations_through_time.R"
-params.neut_script = "$baseDir/scripts/Figure2C_neutralization_assay.R"
-params.neut_data = "$baseDir/data/antibody_potency.csv"
-params.results = "$baseDir/results"
-params.visuals = "$baseDir/results/visuals"
+// NOTE that helpful runtime parameters are in the file `nextflow.config`
+// We recommend that you modify any file paths, inputs, or outputs there.
 
 
 // Defining workflow for generating non-supplementary figures for Halfmann et al. 2022
@@ -22,16 +11,16 @@ workflow {
 
 	// INPUT CHANNELS
 	ch_consensus_seqs = Channel
-		.fromPath('data/alltimepoints_20220222.fasta')
+		.fromPath( params.consensus_seqs )
 
 	ch_ont_reads = Channel // this channel streams in data on the timepoints sequenced on ONT instruments
-		.fromPath ( "config/fig2b_raw_read_guide.csv" )
+		.fromPath ( params.primer_key )
 		.splitCsv ( sep: ",", header: true )
 		.map      { row -> tuple(row.sra_id, row.file_basename, row.platform, file(row.primer_set)) }
 		.filter   { it[2] == "ont" }
 
 	ch_illumina_reads = Channel // this channel streams in data on the timepoints sequenced on Illumina instruments
-		.fromPath ( "config/fig2b_raw_read_guide.csv" )
+		.fromPath ( params.primer_key )
 		.splitCsv ( sep: ",", header: true )
 		.map      { row -> tuple(row.sra_id, row.file_basename, row.platform, file(row.primer_set)) }
 		.filter   { it[2] == "illumina" }
@@ -216,7 +205,7 @@ process CONSENSUS_VARIANT_CALLING {
 	// Calling variants and protein effects for those variants with iVar
 
 	tag "${timepoint}"
-	publishDir "results/data", mode: "copy"
+	publishDir params.results_data_files, mode: "copy"
 
 	input:
 		tuple val(timepoint), path(mpileup)
@@ -240,7 +229,7 @@ process GET_ONT_READS {
 	// https://github.com/ncbi/sra-tools/issues/463
 
 	tag "${timepoint}"
-	publishDir "data/reads", pattern: '*.fastq.gz'
+	publishDir params.results_data_files, pattern: '*.fastq.gz'
 
 	input:
 		tuple val(sra_id), val(timepoint), val(platform), file(primers)
@@ -251,7 +240,9 @@ process GET_ONT_READS {
 	script:
 		"""
 
-		fasterq-dump ${sra_id} --concatenate-reads --skip-technical --quiet
+		prefetch ${sra_id}
+		fasterq-dump ${sra_id}/${sra_id}.sra \
+		--concatenate-reads --skip-technical --quiet
 		gzip ${sra_id}.fastq
 		mv ${sra_id}.fastq.gz ${timepoint}.fastq.gz
 
@@ -265,7 +256,7 @@ process ONT_READ_MAPPING {
 	// Mapping ONT reads from each timepoint
 
 	tag "${timepoint}"
-	publishDir "data/", pattern: '*.sam'
+	publishDir params.results_data_files, pattern: '*.sam'
 
 	input:
 		tuple val(timepoint), file(fastq), file(primers)
@@ -286,7 +277,7 @@ process ONT_ALIGNMENT_POLISHING {
 	// Using SAMTOOLS to clean and prep alignments
 
 	tag "${timepoint}"
-	publishDir "data/"
+	publishDir params.results_data_files
 
 	input:
 		tuple val(timepoint), file(sam), file(primers)
@@ -314,7 +305,7 @@ process ONT_LOWCOV_ANNOTATION {
 	// Creating BED files that annotate regions of each genome with less than 20x coverage
 
 	tag "${timepoint}"
-	publishDir "results/data", mode: "copy"
+	publishDir params.results_data_files, mode: "copy"
 
 	input:
 	tuple val(timepoint), file(bam)
@@ -333,7 +324,7 @@ process ONT_LOWCOV_ANNOTATION {
 process GET_ILL_READS {
 
 	tag "${timepoint}"
-	publishDir "data/reads", pattern: '*.fastq.gz'
+	publishDir params.results_data_files, pattern: '*.fastq.gz'
 
 	input:
 		tuple val(sra_id), val(timepoint), val(platform), file(primers)
@@ -344,7 +335,9 @@ process GET_ILL_READS {
 	script:
 		"""
 
-		fasterq-dump ${sra_id} --split-files --skip-technical --quiet
+		prefetch ${sra_id}
+		fasterq-dump ${sra_id}/${sra_id}.sra \
+		--split-files --skip-technical --quiet
 		gzip ${sra_id}_1.fastq ; mv ${sra_id}_1.fastq.gz ${timepoint}_R1.fastq.gz
 		gzip ${sra_id}_2.fastq ; mv ${sra_id}_2.fastq.gz ${timepoint}_R2.fastq.gz
 
@@ -358,7 +351,7 @@ process ILL_READ_MAPPING {
 	// Mapping ONT reads from each timepoint
 
 	tag "${timepoint}"
-	publishDir "data/", pattern: '*.sam'
+	publishDir params.results_data_files, pattern: '*.sam'
 
 	input:
 		tuple val(timepoint), file(r1_fastq), file(r2_fastq), file(primers)
@@ -379,7 +372,7 @@ process ILL_ALIGNMENT_POLISHING {
 	// Using SAMTOOLS to clean and prep alignments
 
 	tag "${timepoint}"
-	publishDir "data/"
+	params.results_data_files
 
 	input:
 		tuple val(timepoint), file(sam), file(primers)
@@ -407,7 +400,7 @@ process ILL_LOWCOV_ANNOTATION {
 	// Creating BED files that annotate regions of each genome with less than 20x coverage
 
 	tag "${timepoint}"
-	publishDir "results/data", mode: "copy"
+	publishDir params.results_data_files, mode: "copy"
 
 	input:
 		tuple val(timepoint), file(bam)
@@ -428,7 +421,7 @@ process FIGURE_2A_PLOTTING {
 	// Plotting consensus mutations
 
 	publishDir params.visuals, pattern: '*.pdf', mode: 'move'
-	publishDir 'results/data/', pattern: '*.csv', mode: 'move'
+	publishDir params.results_data_files, pattern: '*.csv', mode: 'move'
 
 	input:
 		file(consensus)
