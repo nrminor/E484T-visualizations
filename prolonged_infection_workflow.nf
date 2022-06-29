@@ -14,6 +14,7 @@ params.cons_mutations = "$baseDir/scripts/Figure2A_consensus_mutations_through_t
 params.neut_script = "$baseDir/scripts/Figure2C_neutralization_assay.R"
 params.neut_data = "$baseDir/data/antibody_potency.csv"
 params.results = "$baseDir/results"
+params.visuals = "$baseDir/results/visuals"
 
 
 // Defining workflow for generating non-supplementary figures for Halfmann et al. 2022
@@ -117,7 +118,7 @@ process PANGO_CLASSIFICATION {
 
 	// Classifying pango lineages for each timepoint
 
-	publishDir 'results/', mode: 'move'
+	publishDir params.results, mode: 'move'
 
 	input:
 		file(consensus)
@@ -136,7 +137,7 @@ process FIGURE_1A_PLOTTING {
 
 	// Plotting Ct values
 
-	publishDir 'results/visuals/', pattern: '*.pdf', mode: 'move'
+	publishDir params.visuals, pattern: '*.pdf', mode: 'move'
 
 	output:
 		file("*.pdf")
@@ -426,7 +427,7 @@ process FIGURE_2A_PLOTTING {
 
 	// Plotting consensus mutations
 
-	publishDir "results/visuals/", pattern: '*.pdf', mode: 'move'
+	publishDir params.visuals, pattern: '*.pdf', mode: 'move'
 	publishDir 'results/data/', pattern: '*.csv', mode: 'move'
 
 	input:
@@ -451,7 +452,7 @@ process FIGURE_2C_PLOTTING {
 
 	// Plotting neutralization assay results
 
-	publishDir 'results/visuals/', pattern: '*.pdf', mode: 'move'
+	publishDir params.visuals, pattern: '*.pdf', mode: 'move'
 
 	output:
 		file("*.pdf")
