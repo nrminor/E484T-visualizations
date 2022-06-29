@@ -54,7 +54,9 @@ The following runtime parameters have been set for the whole workflow:
 - `cons_mutations` - path to the script that plots Figure 2A
 - `neut_script` - path to the script that plots neutralization assay results
 - `neut_data` - path to the CSV file of neutralization assay data
-- `results` - path to the results directory
+- `results` - path to the results directory, the workflow's default output location
+- `results_data_files` - path to a subdirectory of `results/` where data files like VCFs are placed.
+- `visuals` - path to a subdirectory of `results/` where graphics are stored. This is where the final figure PDFs are placed.
 
 These parameters can be altered in the command line with a double-dash flag, like so:
 
