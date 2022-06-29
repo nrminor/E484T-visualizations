@@ -4,9 +4,9 @@ nextflow.enable.dsl = 2
 
 // Define some helpful runtime parameters
 params.primer_key = "$baseDir/config/fig2b_raw_read_guide.csv"
-params.refdir = "$baseDir/ref"
-params.refseq = "$baseDir/ref/reference.fasta"
-params.refgff = "$baseDir/ref/ref/MN9089473.gff3"
+params.refdir = "$baseDir/resources"
+params.refseq = "$baseDir/resources/reference.fasta"
+params.refgff = "$baseDir/resources/MN9089473.gff3"
 params.fasta_sep = "$baseDir/scripts/fasta_sep.R"
 params.Ct_script = "$baseDir/scripts/Figure1A_Ct_through_time.R"
 params.Ct_data = "$baseDir/data/Ct_timeline.csv"
