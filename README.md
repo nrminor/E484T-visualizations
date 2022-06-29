@@ -42,17 +42,17 @@ Note that NextFlow's DAG-plotting requires that you have install GraphViz, which
 
 The following runtime parameters have been set for the whole workflow:
 
-`primer_key` - path to an important CSV that lists which primer set was used for each sample
-`refdir` - path to the directory where the reference sequence and primer BED files are located
-`refseq` - path to the SARS-CoV-2 Wuhan-1 sequence from GenBank Accession MN9089473.3
-`refgff` - path to the gene feature file for the SARS-CoV-2 Wuhan-1 sequence
-`fasta_sep` - path to a script that separates out our consensus sequences into individual FASTA files. This script was necessary because GISAID consensus sequence strain names, which I use to name each FASTA, contain backslashes. The script `fasta_sep.R` parses the string for the GISAID strain name and replaces slashes with underscores before naming the FASTA.
-`Ct_script` - path to the script that plots qPCR Ct values through time
-`Ct_data` - path to the CSV file of Ct values
-`cons_mutations` - path to the script that plots Figure 2A
-`neut_script` - path to the script that plots neutralization assay results
-`neut_data` - path to the CSV file of neutralization assay data
-`results` - path to the results directory
+- `primer_key` - path to an important CSV that lists which primer set was used for each sample
+- `refdir` - path to the directory where the reference sequence and primer BED files are located
+- `refseq` - path to the SARS-CoV-2 Wuhan-1 sequence from GenBank Accession MN9089473.3
+- `refgff` - path to the gene feature file for the SARS-CoV-2 Wuhan-1 sequence
+- `fasta_sep` - path to a script that separates out our consensus sequences into individual FASTA files. This script was necessary because GISAID consensus sequence strain names, which I use to name each FASTA, contain backslashes. The script - `fasta_sep.R` parses the string for the GISAID strain name and replaces slashes with underscores before naming the FASTA.
+- `Ct_script` - path to the script that plots qPCR Ct values through time
+- `Ct_data` - path to the CSV file of Ct values
+- `cons_mutations` - path to the script that plots Figure 2A
+- `neut_script` - path to the script that plots neutralization assay results
+- `neut_data` - path to the CSV file of neutralization assay data
+- `results` - path to the results directory
 
 These parameters can be altered in the command line with a double-dash flag, like so:
 
@@ -107,12 +107,12 @@ This workflow was created by Nicholas R. Minor. To report any issues, please vis
 
 ### NextFlow Learning Resources
 
-[NBI Sweden Reproducibility Workshop GitHub](https://github.com/NBISweden/workshop-reproducible-research/tree/main/pages/nextflow) - This one is more up to date than the version on canva, which is the next link
-[NBI Sweden Reproducibility Workshop Canva](https://uppsala.instructure.com/courses/51980/pages/nextflow-1-introduction?module_item_id=328997)
-[NextFlow Official Documentation](https://www.nextflow.io/docs/latest/index.html)
-[Exhaustive NextFlow Github.io Tutorial](https://nextflow-io.github.io/patterns/index.html#_basic_patterns)
-[Seqera Labs NextFlow Tutorial](https://training.seqera.io/)
-[Tronflow NextFlow tutorial](https://tronflow-docs.readthedocs.io/en/latest/02_tutorial.html)
-[Google Cloud NextFlow tutorial](https://cloud.google.com/life-sciences/docs/tutorials/nextflow)
-[Data Carpentries Incubator Workshop on NextFlow](https://carpentries-incubator.github.io/workflows-nextflow/index.html) - This one is especially thorough and helpful, and also introduces nf-core.
-[NextFlow Cheatsheet PDF](https://github.com/danrlu/Nextflow_cheatsheet/blob/main/nextflow_cheatsheet.pdf) - Not a tutorial, but this is a useful PDF to have on hand.
+- [NBI Sweden Reproducibility Workshop GitHub](https://github.com/NBISweden/workshop-reproducible-research/tree/main/pages/nextflow) - This one is more up to date than the version on canva, which is the next link
+- [NBI Sweden Reproducibility Workshop Canva](https://uppsala.instructure.com/courses/51980/pages/nextflow-1-introduction?module_item_id=328997)
+- [NextFlow Official Documentation](https://www.nextflow.io/docs/latest/index.html)
+- [Exhaustive NextFlow Github.io Tutorial](https://nextflow-io.github.io/patterns/index.html#_basic_patterns)
+- [Seqera Labs NextFlow Tutorial](https://training.seqera.io/)
+- [Tronflow NextFlow tutorial](https://tronflow-docs.readthedocs.io/en/latest/02_tutorial.html)
+- [Google Cloud NextFlow tutorial](https://cloud.google.com/life-sciences/docs/tutorials/nextflow)
+- [Data Carpentries Incubator Workshop on NextFlow](https://carpentries-incubator.github.io/workflows-nextflow/index.html) - This one is especially thorough and helpful, and also introduces nf-core.
+- [NextFlow Cheatsheet PDF](https://github.com/danrlu/Nextflow_cheatsheet/blob/main/nextflow_cheatsheet.pdf) - Not a tutorial, but this is a useful PDF to have on hand.
