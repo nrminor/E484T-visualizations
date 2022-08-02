@@ -110,15 +110,15 @@ process PANGO_CLASSIFICATION {
 	publishDir params.results, mode: 'move'
 
 	input:
-		file(consensus)
+	file(consensus)
 
 	output:
-		file("prolonged_infection_lineage_report.csv")
+	file("prolonged_infection_lineage_report.csv")
 
 	script:
-		"""
-		pangolin --outfile 'prolonged_infection_lineage_report.csv' $consensus
-		"""
+	"""
+	pangolin --outfile 'prolonged_infection_lineage_report.csv' $consensus
+	"""
 }
 
 
@@ -129,12 +129,12 @@ process FIGURE_1A_PLOTTING {
 	publishDir params.visuals, pattern: '*.pdf', mode: 'move'
 
 	output:
-		file("*.pdf")
+	file("*.pdf")
 
 	script:
-		"""
-		Rscript ${params.Ct_script} ${params.Ct_data}
-		"""
+	"""
+	Figure1A_Ct_through_time.R ${params.Ct_data}
+	"""
 
 }
 
@@ -144,15 +144,15 @@ process ISOLATING_CONSENSUS_SEQS {
 	// Taking each consensus sequence into its own, separate FASTA
 
 	input:
-		path(consensus)
+	path(consensus)
 
 	output:
-		file("USA*.fasta")
+	file("USA*.fasta")
 
 	script:
-		"""
-		Rscript ${params.fasta_sep} ${consensus}
-		"""
+	"""
+	fasta_sep.R ${consensus}
+	"""
 
 }
 
@@ -164,15 +164,15 @@ process CONSENSUS_ALIGNMENT {
 	tag "${timepoint}"
 
 	input:
-		tuple val(timepoint), file(fasta)
+	tuple val(timepoint), file(fasta)
 
 	output:
-		tuple val(timepoint), path("*.sam")
+	tuple val(timepoint), path("*.sam")
 
 	script:
-		"""
-		minimap2 -a ${params.refseq} ${fasta} > ${timepoint}.sam
-		"""
+	"""
+	minimap2 -a ${params.refseq} ${fasta} > ${timepoint}.sam
+	"""
 
 }
 
@@ -184,18 +184,18 @@ process CONSENSUS_PILEUP {
 	tag "${timepoint}"
 
 	input:
-		tuple val(timepoint), path(sam)
+	tuple val(timepoint), path(sam)
 
 	output:
-		tuple val(timepoint), path("*.mpileup")
+	tuple val(timepoint), path("*.mpileup")
 
 	script:
-		"""
-		cat ${sam} \
-		  | samtools view -Sb - \
-		  | samtools sort - > tempfile
-		  samtools mpileup -aa -f ${params.refseq} --output ${timepoint}.mpileup tempfile
-		"""
+	"""
+	cat ${sam} \
+	  | samtools view -Sb - \
+	  | samtools sort - > tempfile
+	  samtools mpileup -aa -f ${params.refseq} --output ${timepoint}.mpileup tempfile
+	"""
 
 }
 
@@ -208,17 +208,17 @@ process CONSENSUS_VARIANT_CALLING {
 	publishDir params.results_data_files, mode: "copy"
 
 	input:
-		tuple val(timepoint), path(mpileup)
+	tuple val(timepoint), path(mpileup)
 
 	output:
-		path("*_consensus_variant_table.tsv")
+	path("*_consensus_variant_table.tsv")
 
 	script:
-		"""
-		cat ${mpileup} \
-		  | ivar variants -p ${timepoint}_consensus_variant_table \
-		  -t 0 -m 1 -q 1 -r ${params.refseq} -g ${params.refgff}
-		"""
+	"""
+	cat ${mpileup} \
+	  | ivar variants -p ${timepoint}_consensus_variant_table \
+	  -t 0 -m 1 -q 1 -r ${params.refseq} -g ${params.refgff}
+	"""
 
 }
 
@@ -232,21 +232,21 @@ process GET_ONT_READS {
 	publishDir params.results_data_files, pattern: '*.fastq.gz'
 
 	input:
-		tuple val(sra_id), val(timepoint), val(platform), file(primers)
+	tuple val(sra_id), val(timepoint), val(platform), file(primers)
 
 	output:
-		tuple val(timepoint), file("*.fastq.gz"), file(primers)
+	tuple val(timepoint), file("*.fastq.gz"), file(primers)
 
 	script:
-		"""
+	"""
 
-		prefetch ${sra_id}
-		fasterq-dump ${sra_id}/${sra_id}.sra \
-		--concatenate-reads --skip-technical --quiet
-		gzip ${sra_id}.sra.fastq
-		mv ${sra_id}.sra.fastq.gz ${timepoint}.fastq.gz
+	prefetch ${sra_id}
+	fasterq-dump ${sra_id}/${sra_id}.sra \
+	--concatenate-reads --skip-technical --quiet
+	gzip ${sra_id}.sra.fastq
+	mv ${sra_id}.sra.fastq.gz ${timepoint}.fastq.gz
 
-		"""
+	"""
 
 }
 
@@ -259,15 +259,15 @@ process ONT_READ_MAPPING {
 	publishDir params.results_data_files, pattern: '*.sam'
 
 	input:
-		tuple val(timepoint), file(fastq), file(primers)
+	tuple val(timepoint), file(fastq), file(primers)
 
 	output:
-		tuple val(timepoint), file("*.sam"), file(primers)
+	tuple val(timepoint), file("*.sam"), file(primers)
 
 	script:
-		"""
-		minimap2 -ax map-ont ${params.refseq} ${fastq} > ${timepoint}.sam
-		"""
+	"""
+	minimap2 -ax map-ont ${params.refseq} ${fastq} > ${timepoint}.sam
+	"""
 
 }
 
@@ -280,23 +280,23 @@ process ONT_ALIGNMENT_POLISHING {
 	publishDir params.results_data_files
 
 	input:
-		tuple val(timepoint), file(sam), file(primers)
+	tuple val(timepoint), file(sam), file(primers)
 
 	output:
-		tuple val(timepoint), file("*.bam"), emit: bam
-		file("*.bam.bai")
+	tuple val(timepoint), file("*.bam"), emit: bam
+	file("*.bam.bai")
 
 	script:
-		"""
+	"""
 
-		cat ${sam} \
-		| samtools ampliconclip -b ${primers} - \
-		| samtools view -Sb - \
-		| samtools sort - > ${timepoint}.bam
+	cat ${sam} \
+	| samtools ampliconclip -b ${primers} - \
+	| samtools view -Sb - \
+	| samtools sort - > ${timepoint}.bam
 
-		samtools index ${timepoint}.bam
+	samtools index ${timepoint}.bam
 
-		"""
+	"""
 
 }
 
@@ -314,9 +314,9 @@ process ONT_LOWCOV_ANNOTATION {
 	file("*.bed")
 
 	script:
-		"""
-		covtobed --max-cov=20 ${bam} > ${timepoint}.bed
-		"""
+	"""
+	covtobed --max-cov=20 ${bam} > ${timepoint}.bed
+	"""
 
 }
 
@@ -327,21 +327,21 @@ process GET_ILL_READS {
 	publishDir params.results_data_files, pattern: '*.fastq.gz'
 
 	input:
-		tuple val(sra_id), val(timepoint), val(platform), file(primers)
+	tuple val(sra_id), val(timepoint), val(platform), file(primers)
 
 	output:
-		tuple val(timepoint), file("*_R1.fastq.gz"), file("*_R2.fastq.gz"), file(primers)
+	tuple val(timepoint), file("*_R1.fastq.gz"), file("*_R2.fastq.gz"), file(primers)
 
 	script:
-		"""
+	"""
 
-		prefetch ${sra_id}
-		fasterq-dump ${sra_id}/${sra_id}.sra \
-		--split-files --skip-technical --quiet
-		gzip ${sra_id}.sra_1.fastq ; mv ${sra_id}.sra_1.fastq.gz ${timepoint}_R1.fastq.gz
-		gzip ${sra_id}.sra_2.fastq ; mv ${sra_id}.sra_2.fastq.gz ${timepoint}_R2.fastq.gz
+	prefetch ${sra_id}
+	fasterq-dump ${sra_id}/${sra_id}.sra \
+	--split-files --skip-technical --quiet
+	gzip ${sra_id}.sra_1.fastq ; mv ${sra_id}.sra_1.fastq.gz ${timepoint}_R1.fastq.gz
+	gzip ${sra_id}.sra_2.fastq ; mv ${sra_id}.sra_2.fastq.gz ${timepoint}_R2.fastq.gz
 
-		"""
+	"""
 
 }
 
@@ -354,15 +354,15 @@ process ILL_READ_MAPPING {
 	publishDir params.results_data_files, pattern: '*.sam'
 
 	input:
-		tuple val(timepoint), file(r1_fastq), file(r2_fastq), file(primers)
+	tuple val(timepoint), file(r1_fastq), file(r2_fastq), file(primers)
 
 	output:
-		tuple val(timepoint), file("*.sam"), file(primers)
+	tuple val(timepoint), file("*.sam"), file(primers)
 
 	script:
-		"""
-		minimap2 -ax sr ${params.refseq} ${r1_fastq} ${r2_fastq} > ${timepoint}.sam
-		"""
+	"""
+	minimap2 -ax sr ${params.refseq} ${r1_fastq} ${r2_fastq} > ${timepoint}.sam
+	"""
 
 }
 
@@ -375,23 +375,23 @@ process ILL_ALIGNMENT_POLISHING {
 	params.results_data_files
 
 	input:
-		tuple val(timepoint), file(sam), file(primers)
+	tuple val(timepoint), file(sam), file(primers)
 
 	output:
-		tuple val(timepoint), file("*.bam"), emit: bam
-		file("*bam.bai")
+	tuple val(timepoint), file("*.bam"), emit: bam
+	file("*bam.bai")
 
 	script:
-		"""
+	"""
 
-		cat ${sam} \
-		| samtools ampliconclip -b ${primers} - \
-		| samtools view -Sb - \
-		| samtools sort - > ${timepoint}.bam
+	cat ${sam} \
+	| samtools ampliconclip -b ${primers} - \
+	| samtools view -Sb - \
+	| samtools sort - > ${timepoint}.bam
 
-		samtools index ${timepoint}.bam
+	samtools index ${timepoint}.bam
 
-		"""
+	"""
 
 }
 
@@ -403,15 +403,15 @@ process ILL_LOWCOV_ANNOTATION {
 	publishDir params.results_data_files, mode: "copy"
 
 	input:
-		tuple val(timepoint), file(bam)
+	tuple val(timepoint), file(bam)
 
 	output:
-		file("*.bed")
+	file("*.bed")
 
 	script:
-		"""
-		covtobed --max-cov=20 ${bam} > ${timepoint}.bed
-		"""
+	"""
+	covtobed --max-cov=20 ${bam} > ${timepoint}.bed
+	"""
 
 }
 
@@ -424,19 +424,19 @@ process FIGURE_2A_PLOTTING {
 	publishDir params.results_data_files, pattern: '*.csv', mode: 'move'
 
 	input:
-		file(consensus)
-		file(ont_bed_list)
-		file(ill_bed_list)
-		file(variant_table_list)
+	file(consensus)
+	file(ont_bed_list)
+	file(ill_bed_list)
+	file(variant_table_list)
 
 	output:
-		file("*.pdf")
-		file("*.csv")
+	file("*.pdf")
+	file("*.csv")
 
 	script:
-		"""
-		Rscript ${params.cons_mutations} ${consensus}
-		"""
+	"""
+	Figure2A_consensus_mutations_through_time.R ${consensus}
+	"""
 
 }
 
@@ -448,12 +448,12 @@ process FIGURE_2C_PLOTTING {
 	publishDir params.visuals, pattern: '*.pdf', mode: 'move'
 
 	output:
-		file("*.pdf")
+	file("*.pdf")
 
 	script:
-		"""
-		Rscript ${params.neut_script} ${params.neut_data}
-		"""
+	"""
+	Figure2C_neutralization_assay.R ${params.neut_data}
+	"""
 
 }
 
