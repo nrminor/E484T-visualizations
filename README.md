@@ -4,19 +4,47 @@ This workflow was created to efficiently gather, process, and visualize data pre
 
 Note that this workflow does not include processing behind Halfmann et al. 2022 supplemental tables and figures. These workflows are bundled separately and can be accessed by following the links in these GitHub repos:
 - [Supplemental Figure 1](https://github.com/nrminor/prolonged-infection-suppfig1) - (still under development)
-- [Supplemental Figure 2](https://github.com/nrminor/prolonged-infection-suppfig2)
+- [Supplemental Figure 2](https://github.com/nrminor/prolonged-infection-suppfig2) - (still under development)
 
-## Getting started
+## Getting Started
 
-To reproduce our results, we recommend users simply clone the repository to their machine of choice with `git clone https://github.com/dholab/E484T-visualizations.git`. Once the repository is in place, users should make sure the [NextFlow](https://www.nextflow.io/) workflow manager is installed. If it isn't installed, go through the following steps:
+To run this workflow, simply `git clone` it into your working directory of choice, like so:
 
-1. Install the miniconda python distribution (https://docs.conda.io/en/latest/miniconda.html)
-2. Install the `mamba` package installation tool:
+```
+git clone https://github.com/nrminor/E484T-visualizations.git .
+```
+
+Once the workflow bundle is in place, first ensure that the workflow scripts are executable, like so:
+
+```
+chmod +x bin/*.py
+```
+
+Next, build the Docker image that contains the workflow's dependencies:
+
+```
+docker build --tag wisc-prolonged-infection:v1_0_1 config/
+```
+
+Note that to build the above docker container, you may need to increase the amount of memory allotted to Docker in the Docker Engine preferences.
+
+### Nextflow Installation
+
+This workflow uses the [NextFlow](https://www.nextflow.io/) workflow manager. We recommend you install NextFlow to your system in one of the two following ways:
+
+#### 1) Installation with Conda
+
+1. Install the miniconda python distribution, if you haven't already: [https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
+2. Install the `mamba` package installation tool in the command line:
    `conda install -y -c conda-forge mamba`
-3. Install `nextflow` and other packages needed for the workflow by changing into the workflow directory and running:
-   ` mamba env create -f config/envs/prolonged_infection.yaml -n prolonged-infection `
-4. Activate the new environment:
-   ` conda activate prolonged-infection `
+3. Install Nextflow to your base environment:
+   `mamba install -c bioconda nextflow `
+
+#### 2) Installation with curl
+
+1. Run the following line in a directory where you'd like to install NextFlow, and run the following line of code:
+   `curl -fsSL https://get.nextflow.io | bash`
+2. Add this directory to your $PATH. If on MacOS, a helpful guide can be viewed [here](https://www.architectryan.com/2012/10/02/add-to-the-path-on-mac-os-x-mountain-lion/).
 
 To double check that the installation was successful, type `nextflow -v` into the terminal. If it returns something like `nextflow version 21.04.0.5552`, you are set and ready to proceed.
 
@@ -32,13 +60,7 @@ If the workflow runs partway, but a computer outage or other issue interrupts it
 nextflow run prolonged_infection_workflow.nf -resume
 ```
 
-Finally, if you're like me and you appreciate additional information about how the workflow ran, run the workflow with any or all of the following flags:
-
-```
-nextflow prolonged_infection_workflow.nf -with-report -with-timeline -with-dag prolonged_infection_dag.png
-```
-
-Note that NextFlow's DAG-plotting requires that you have install GraphViz, which is easiest to do via the intructions on [GraphViz's website](https://graphviz.org/download/).
+The workflow's configurations (see below) tell NextFlow to plot the workflow and record run statistics. However, the plot the workflow, note that NextFlow requires the package GraphViz, which is easiest to install via the intructions on [GraphViz's website](https://graphviz.org/download/).
 
 ### Configuration
 
