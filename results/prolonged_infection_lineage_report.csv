@@ -1,0 +1,13 @@
+taxon,lineage,conflict,ambiguity_score,scorpio_call,scorpio_support,scorpio_conflict,scorpio_notes,version,pangolin_version,scorpio_version,constellation_version,is_designated,qc_status,qc_notes,note
+USA/WI-WSLH-202168/2020 | Infection Day 113,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.03,Usher placements: B.1.2(1/1)
+USA/WI-UW-2731/2021 | Infection Day 124,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.03,Usher placements: B.1.2(1/1)
+USA/WI-UW-2731-T2/2021 | Infection Day 131,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.03,Usher placements: B.1.2(1/1)
+USA/WI-UW-2731-T3/2021 | Infection Day 159,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.06,Usher placements: B.1.2(1/1)
+USA/WI-UW-2731-T4/2021 | Infection Day 198,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.04,Usher placements: B.1.2(1/1)
+USA/WI-UW-5350/2021 | Infection Day 297,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.06,Usher placements: B.1.2(1/1)
+USA/WI-WSLH-217727/2021 | Infection Day 333,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.12,Usher placements: B.1.2(1/1)
+USA/WI-UW-PI08/2021 | Infection Day 388,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.02,Usher placements: B.1.2(1/1)
+USA/WI-UW-PI09/2021 | Infection Day 415,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.02,Usher placements: B.1.2(1/1)
+USA/WI-UW-PI10/2021 | Infection Day 417,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.02,Usher placements: B.1.2(1/1)
+USA/WI-UW-PI11/2021 | Infection Day 482,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.02,Usher placements: B.1.2(1/1)
+USA/WI-UW-PI12/2022 | Infection Day 486,B.1.2,0.0,,,,,,PUSHER-v1.13,4.1.2,0.3.17,v0.1.10,False,pass,Ambiguous_content:0.02,Usher placements: B.1.2(1/1)

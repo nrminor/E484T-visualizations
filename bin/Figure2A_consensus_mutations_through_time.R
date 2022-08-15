@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 ### PLOTTING CONSENSUS MUTATIONS THROUGH TIME
-# UPDATED: 29-Mar-2022 by Nicholas R. Minor
+# UPDATED: 15-Aug-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
 # This script will identify and plot single-nucleotide differences between each
@@ -21,7 +21,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 ### SETUP ####
 ### ---- #
-list.of.packages <- c("Biostrings", "tidyverse", "grid", "gridExtra", "gridGraphics")
+list.of.packages <- c("Biostrings", "tidyverse")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 invisible(lapply(list.of.packages, library, character.only = TRUE))

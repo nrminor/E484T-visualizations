@@ -26,4 +26,7 @@ data/*.fasta
 *.1
 *.2
 *.3
-
+prolonged_infection_dag.png.*
+report.html*
+trace.txt*
+timeline.html*

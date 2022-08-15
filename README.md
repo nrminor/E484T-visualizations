@@ -4,29 +4,30 @@ This workflow was created to efficiently gather, process, and visualize data pre
 
 Note that this workflow does not include processing behind Halfmann et al. 2022 supplemental tables and figures. These workflows are bundled separately and can be accessed by following the links in these GitHub repos:
 - [Supplemental Figure 1](https://github.com/nrminor/prolonged-infection-suppfig1) - (still under development)
-- [Supplemental Figure 2](https://github.com/nrminor/prolonged-infection-suppfig2) - (still under development)
+- [Supplemental Figure 2](https://github.com/nrminor/prolonged-infection-suppfig2)
 
-## Getting Started
+## Quick Start
 
-To run this workflow, simply `git clone` it into your working directory of choice, like so:
-
-```
-git clone https://github.com/nrminor/E484T-visualizations.git .
-```
-
-Once the workflow bundle is in place, first ensure that the workflow scripts are executable, like so:
+If you already have Docker and NextFlow installed on your system, simply run the following command in the directory of your choice:
 
 ```
-chmod +x bin/*.py
+nextflow run nrminor/E484T-visualizations -latest
 ```
 
-Next, build the Docker image that contains the workflow's dependencies:
+This command automatically pulls the workflow from GitHub and runs it. If you do not have Docker and NextFlow installed, or want to tweak any of the default configurations in the workflow, proceed to the following sections.
+
+
+## Detailed Instructions
+
+To run this workflow, start by running `git clone` to bring the workflow files into your directory of choice, like so:
 
 ```
-docker build --tag wisc-prolonged-infection:v1_0_1 config/
+git clone https://github.com/nrminor/E484T-visualizations .
 ```
 
-Note that to build the above docker container, you may need to increase the amount of memory allotted to Docker in the Docker Engine preferences.
+Once the workflow bundle is in place, you may need to double-check that the workflow scripts are executable by running `chmod +x bin/*` in the command line.
+
+You will also need to install the Docker engine if you haven't already. The workflow pulls all the software it needs automatically from Docker Hub, which means you will never need to permanently install that software on your system. To install Docker, simply visit the Docker installation page at [https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/).
 
 ### Nextflow Installation
 
@@ -48,7 +49,9 @@ This workflow uses the [NextFlow](https://www.nextflow.io/) workflow manager. We
 
 To double check that the installation was successful, type `nextflow -v` into the terminal. If it returns something like `nextflow version 21.04.0.5552`, you are set and ready to proceed.
 
-To run the workflow, simply change into the workflow directory and run the following in the BASH terminal:
+### Running the workflow
+
+Now that you have cloned the workflow files, installed Docker, and installed NextFlow, you are ready to run the workflow. To do so, simply change into the workflow directory and run the following in the BASH terminal:
 
 ```
 nextflow run prolonged_infection_workflow.nf
