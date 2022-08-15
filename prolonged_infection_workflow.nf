@@ -96,6 +96,10 @@ workflow {
 		ILL_LOWCOV_ANNOTATION.out, // we would use collect() here, but there's only one Illumina timepoint
 		CONSENSUS_VARIANT_CALLING.out.collect()
 	)
+	
+	TAR_FIG2A_DATA (
+		FIGURE_2A_PLOTTING.out.cue
+	)
 
 	// Plotting neutralization assay results, figure 2C
 	FIGURE_2C_PLOTTING ()
@@ -205,7 +209,8 @@ process CONSENSUS_VARIANT_CALLING {
 	// Calling variants and protein effects for those variants with iVar
 
 	tag "${timepoint}"
-	publishDir params.results_data_files, mode: "copy"
+	
+	publishDir params.results_data_files, pattern: '*_consensus_variant_table.tsv', mode: 'copy'
 
 	input:
 	tuple val(timepoint), path(mpileup)
@@ -229,7 +234,8 @@ process GET_ONT_READS {
 	// https://github.com/ncbi/sra-tools/issues/463
 
 	tag "${timepoint}"
-	publishDir params.results_data_files, pattern: '*.fastq.gz'
+	
+	publishDir params.results_data_files, pattern: '*.fastq.gz', mode: 'copy'
 
 	input:
 	tuple val(sra_id), val(timepoint), val(platform), file(primers)
@@ -256,7 +262,6 @@ process ONT_READ_MAPPING {
 	// Mapping ONT reads from each timepoint
 
 	tag "${timepoint}"
-	publishDir params.results_data_files, pattern: '*.sam'
 
 	input:
 	tuple val(timepoint), file(fastq), file(primers)
@@ -277,14 +282,16 @@ process ONT_ALIGNMENT_POLISHING {
 	// Using SAMTOOLS to clean and prep alignments
 
 	tag "${timepoint}"
-	publishDir params.results_data_files
+	
+	publishDir params.results_data_files, pattern: '*.bam', mode: 'copy'
+	publishDir params.results_data_files, pattern: '*.bam.bai', mode: 'copy'
 
 	input:
 	tuple val(timepoint), file(sam), file(primers)
 
 	output:
 	tuple val(timepoint), file("*.bam"), emit: bam
-	file("*.bam.bai")
+	path("*.bam.bai"), emit: bai
 
 	script:
 	"""
@@ -305,7 +312,8 @@ process ONT_LOWCOV_ANNOTATION {
 	// Creating BED files that annotate regions of each genome with less than 20x coverage
 
 	tag "${timepoint}"
-	publishDir params.results_data_files, mode: "copy"
+	
+	publishDir params.results_data_files, pattern: '*.bed', mode: 'copy'
 
 	input:
 	tuple val(timepoint), file(bam)
@@ -324,7 +332,8 @@ process ONT_LOWCOV_ANNOTATION {
 process GET_ILL_READS {
 
 	tag "${timepoint}"
-	publishDir params.results_data_files, pattern: '*.fastq.gz'
+	
+	publishDir params.results_data_files, pattern: '*.fastq.gz', mode: 'copy'
 
 	input:
 	tuple val(sra_id), val(timepoint), val(platform), file(primers)
@@ -351,7 +360,6 @@ process ILL_READ_MAPPING {
 	// Mapping ONT reads from each timepoint
 
 	tag "${timepoint}"
-	publishDir params.results_data_files, pattern: '*.sam'
 
 	input:
 	tuple val(timepoint), file(r1_fastq), file(r2_fastq), file(primers)
@@ -372,14 +380,16 @@ process ILL_ALIGNMENT_POLISHING {
 	// Using SAMTOOLS to clean and prep alignments
 
 	tag "${timepoint}"
-	params.results_data_files
+	
+	publishDir params.results_data_files, pattern: '*.bam', mode: 'copy'
+	publishDir params.results_data_files, pattern: '*.bam.bai', mode: 'copy'
 
 	input:
 	tuple val(timepoint), file(sam), file(primers)
 
 	output:
 	tuple val(timepoint), file("*.bam"), emit: bam
-	file("*bam.bai")
+	path("*bam.bai"), emit: bai
 
 	script:
 	"""
@@ -400,7 +410,7 @@ process ILL_LOWCOV_ANNOTATION {
 	// Creating BED files that annotate regions of each genome with less than 20x coverage
 
 	tag "${timepoint}"
-	publishDir params.results_data_files, mode: "copy"
+	publishDir params.results_data_files, pattern: '*.bed', mode: "copy"
 
 	input:
 	tuple val(timepoint), file(bam)
@@ -430,6 +440,7 @@ process FIGURE_2A_PLOTTING {
 	file(variant_table_list)
 
 	output:
+	val("finished"), emit: cue
 	file("*.pdf")
 	file("*.csv")
 
@@ -438,6 +449,27 @@ process FIGURE_2A_PLOTTING {
 	Figure2A_consensus_mutations_through_time.R ${consensus}
 	"""
 
+}
+
+
+process TAR_FIG2A_DATA {
+	
+	publishDir params.results, pattern: '*.tar.gz', mode: 'move'
+	
+	when:
+	cue == "finished"
+	
+	input:
+	val(cue)
+	
+	output:
+	path("fig2a_data.tar.xz")
+	
+	script:
+	"""
+	tar -I 'xz -9' -chf fig2a_data.tar.xz ${params.results_data_files}
+	"""
+	
 }
 
 
