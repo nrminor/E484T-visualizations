@@ -94,7 +94,7 @@ Bundled together with the workflow are:
 - the MN9089473.3 gene coordinate/codon GFF file is also in `ref/` and is called MN9089473.gff3
 - a CSV file of qPCR cycle threshold values through the course of the prolonged infection is in `data/`
 - a CSV file of neutralization assay results is also in `data/`
-- a very important file called `fig2b_raw_read_guide.csv` is in `config/`. This file enables the workflow to use the correct primers for each sample in `samtools ampliconclip`.
+- a very important file called `fig2b_raw_read_guide.csv` is in `resources/`. This file enables the workflow to use the correct primers for each sample in `samtools ampliconclip`.
 
 ## Workflow summary
 
@@ -109,6 +109,7 @@ Bundled together with the workflow are:
 - the mapped reads in SAM format are then clipped down to amplicons and converted to BAM format
 - a tool called `covtobed` then identifies regions in any of these BAMs where depth of coverage is less than 20 reads, indicating an amplicon dropout
 - the amplicon dropout BED files, the consensus sequence FASTA, and the iVar variant tables are then plotted with an R script
+- once Figure 2A has been plotted, all the FASTQ files, BAM files, BED files, and variant tables generated at intermediate steps of the workflow are stored and compressed in a TAR archive.
 - the neutralization assay results are plotted with an R script
 
 ## Output files

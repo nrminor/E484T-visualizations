@@ -121,7 +121,7 @@ process PANGO_CLASSIFICATION {
 
 	script:
 	"""
-	pangolin --outfile 'prolonged_infection_lineage_report.csv' $consensus
+	pangolin --outfile 'prolonged_infection_lineage_report.csv' ${consensus}
 	"""
 }
 
@@ -266,9 +266,13 @@ process ONT_READ_MAPPING {
 
 	tag "${timepoint}"
 	
-	// memory { 3.GB * task.attempt }
+	memory 2.GB
+	// memory { 2.GB * task.attempt }
 	// errorStrategy 'retry'
-	// maxRetries 4
+	// maxRetries 2
+	containerOptions '--memory=2g'
+	cpus 1
+	
 
 	input:
 	tuple val(timepoint), file(fastq), file(primers)
@@ -278,7 +282,7 @@ process ONT_READ_MAPPING {
 
 	script:
 	"""
-	minimap2 -ax map-ont ${params.refseq} ${fastq} > ${timepoint}.sam
+	mapPacBio.sh in=${fastq} ref=${params.refseq} out=${timepoint}.sam -Xmx2g
 	"""
 
 }
@@ -369,9 +373,12 @@ process ILL_READ_MAPPING {
 
 	tag "${timepoint}"
 	
-	// memory { 3.GB * task.attempt }
+	memory 2.GB
+	// memory { 2.GB * task.attempt }
 	// errorStrategy 'retry'
-	// maxRetries 4
+	// maxRetries 2
+	containerOptions '--memory=2g'
+	cpus 1
 
 	input:
 	tuple val(timepoint), file(r1_fastq), file(r2_fastq), file(primers)
@@ -381,7 +388,7 @@ process ILL_READ_MAPPING {
 
 	script:
 	"""
-	minimap2 -ax sr ${params.refseq} ${r1_fastq} ${r2_fastq} > ${timepoint}.sam
+	bbmap.sh in1=${r1_fastq} in2=${r2_fastq} ref=${params.refseq} out=${timepoint}.sam -Xmx2g
 	"""
 
 }
