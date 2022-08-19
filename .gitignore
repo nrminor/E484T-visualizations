@@ -10,8 +10,6 @@ work/
 data/*.vcf
 data/*.tsv
 data/*.tsv.gz
-data/*.tar.xz
-data/*.csv
 data/*.txt
 data/*.fasta
 
@@ -19,7 +17,8 @@ data/*.fasta
 .next*
 .DS_Store
 .nextflow.log*
-*fastq.gz
+*.fasta.fai
+*.fastq.gz
 *.sam
 *.bam
 *.bam.bai

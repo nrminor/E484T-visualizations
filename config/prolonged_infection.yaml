@@ -11,3 +11,4 @@ dependencies:
   - r-tidyverse
   - r-plotrix
   - sra-tools=2.10.1
+  - minimap2=2.24

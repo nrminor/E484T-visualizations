@@ -235,6 +235,9 @@ process GET_ONT_READS {
 
 	tag "${timepoint}"
 	
+	errorStrategy 'retry'
+	maxRetries 2
+	
 	publishDir params.results_data_files, pattern: '*.fastq.gz', mode: 'copy'
 
 	input:
@@ -248,7 +251,7 @@ process GET_ONT_READS {
 
 	prefetch ${sra_id}
 	fasterq-dump ${sra_id}/${sra_id}.sra \
-	--concatenate-reads --skip-technical --quiet
+	--concatenate-reads --skip-technical --quiet && \
 	gzip ${sra_id}.sra.fastq
 	mv ${sra_id}.sra.fastq.gz ${timepoint}.fastq.gz
 
@@ -262,6 +265,10 @@ process ONT_READ_MAPPING {
 	// Mapping ONT reads from each timepoint
 
 	tag "${timepoint}"
+	
+	// memory { 3.GB * task.attempt }
+	// errorStrategy 'retry'
+	// maxRetries 4
 
 	input:
 	tuple val(timepoint), file(fastq), file(primers)
@@ -346,9 +353,10 @@ process GET_ILL_READS {
 
 	prefetch ${sra_id}
 	fasterq-dump ${sra_id}/${sra_id}.sra \
-	--split-files --skip-technical --quiet
-	gzip ${sra_id}.sra_1.fastq ; mv ${sra_id}.sra_1.fastq.gz ${timepoint}_R1.fastq.gz
-	gzip ${sra_id}.sra_2.fastq ; mv ${sra_id}.sra_2.fastq.gz ${timepoint}_R2.fastq.gz
+	--split-files --skip-technical --quiet && \
+	gzip ${sra_id}.sra_1.fastq && gzip ${sra_id}.sra_2.fastq
+	mv ${sra_id}.sra_1.fastq.gz ${timepoint}_R1.fastq.gz
+	mv ${sra_id}.sra_2.fastq.gz ${timepoint}_R2.fastq.gz
 
 	"""
 
@@ -360,6 +368,10 @@ process ILL_READ_MAPPING {
 	// Mapping ONT reads from each timepoint
 
 	tag "${timepoint}"
+	
+	// memory { 3.GB * task.attempt }
+	// errorStrategy 'retry'
+	// maxRetries 4
 
 	input:
 	tuple val(timepoint), file(r1_fastq), file(r2_fastq), file(primers)
