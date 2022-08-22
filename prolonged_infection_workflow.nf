@@ -209,6 +209,8 @@ process CONSENSUS_VARIANT_CALLING {
 	// Calling variants and protein effects for those variants with iVar
 
 	tag "${timepoint}"
+	
+	publishDir params.results_data_files, pattern: '*_consensus_variant_table.tsv', mode: 'copy'
 
 	input:
 	tuple val(timepoint), path(mpileup)
@@ -252,7 +254,9 @@ process GET_ONT_READS {
 	--concatenate-reads --skip-technical --quiet && \
 	gzip ${sra_id}.sra.fastq
 	mv ${sra_id}.sra.fastq.gz ${timepoint}.fastq.gz
-
+	rm -rf ${sra_id}/
+	rm -rf fasterq.tmp.*
+	
 	"""
 
 }
@@ -279,7 +283,7 @@ process ONT_READ_MAPPING {
 	script:
 	"""
 	minimap2 -ax map-ont -t 1 -o ${timepoint}.sam ${params.refseq} ${fastq} && \
-	rm -f *.fastq.gz
+	rm -f `realpath *.fastq.gz`
 	"""
 
 }
@@ -308,7 +312,7 @@ process ONT_ALIGNMENT_POLISHING {
 	| samtools ampliconclip -b ${primers} - \
 	| samtools view -Sb - \
 	| samtools sort - > ${timepoint}.bam && \
-	rm -f ${sam}
+	rm -f `realpath ${sam}`
 
 	samtools index ${timepoint}.bam
 
@@ -333,7 +337,7 @@ process ONT_LOWCOV_ANNOTATION {
 	script:
 	"""
 	covtobed --max-cov=20 ${bam} > ${timepoint}.bed && \
-	rm -f *.bam
+	rm -f `realpath *.bam`
 	"""
 
 }
@@ -360,6 +364,8 @@ process GET_ILL_READS {
 	gzip ${sra_id}.sra_1.fastq && gzip ${sra_id}.sra_2.fastq
 	mv ${sra_id}.sra_1.fastq.gz ${timepoint}_R1.fastq.gz
 	mv ${sra_id}.sra_2.fastq.gz ${timepoint}_R2.fastq.gz
+	rm -rf ${sra_id}/
+	rm -rf fasterq.tmp.*
 
 	"""
 
@@ -387,7 +393,7 @@ process ILL_READ_MAPPING {
 	script:
 	"""
 	minimap2 -ax sr -t 1 -o ${timepoint}.sam ${params.refseq} ${r1_fastq} ${r2_fastq} && \
-	rm -f *.fastq.gz
+	rm -f `realpath *.fastq.gz`
 	"""
 
 }
@@ -416,7 +422,7 @@ process ILL_ALIGNMENT_POLISHING {
 	| samtools ampliconclip -b ${primers} - \
 	| samtools view -Sb - \
 	| samtools sort - > ${timepoint}.bam && \
-	rm -f ${sam}
+	rm -f `realpath ${sam}`
 
 	samtools index ${timepoint}.bam
 
@@ -441,7 +447,7 @@ process ILL_LOWCOV_ANNOTATION {
 	script:
 	"""
 	covtobed --max-cov=20 ${bam} > ${timepoint}.bed && \
-	rm -f ${bam}
+	rm -f `realpath ${bam}`
 	"""
 
 }
