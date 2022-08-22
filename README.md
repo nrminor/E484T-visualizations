@@ -65,6 +65,8 @@ nextflow run prolonged_infection_workflow.nf -resume
 
 The workflow's configurations (see below) tell NextFlow to plot the workflow and record run statistics. However, the plot the workflow, note that NextFlow requires the package GraphViz, which is easiest to install via the intructions on [GraphViz's website](https://graphviz.org/download/).
 
+Finally, if you are running the workflow on macOS, you may run into memory issues if you have not allocated enough storage to the Docker Engine. If possible, we recommend you allocate 16GB of RAM to your Docker engine, though 6 GB, 8 GB, or 10 GB may also supply enough. At the time that we designed this workflow, [this Stack Overflow answer](https://stackoverflow.com/a/68012385) is a good guide for increasing Docker memory.
+
 ### Configuration
 
 The following runtime parameters have been set for the whole workflow:

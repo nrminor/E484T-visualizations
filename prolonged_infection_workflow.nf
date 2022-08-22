@@ -209,8 +209,6 @@ process CONSENSUS_VARIANT_CALLING {
 	// Calling variants and protein effects for those variants with iVar
 
 	tag "${timepoint}"
-	
-	publishDir params.results_data_files, pattern: '*_consensus_variant_table.tsv', mode: 'copy'
 
 	input:
 	tuple val(timepoint), path(mpileup)
@@ -235,10 +233,10 @@ process GET_ONT_READS {
 
 	tag "${timepoint}"
 	
+	publishDir params.results_data_files, pattern: '*.fastq.gz', mode: 'copy'
+	
 	errorStrategy 'retry'
 	maxRetries 2
-	
-	publishDir params.results_data_files, pattern: '*.fastq.gz', mode: 'copy'
 
 	input:
 	tuple val(sra_id), val(timepoint), val(platform), file(primers)
@@ -266,13 +264,11 @@ process ONT_READ_MAPPING {
 
 	tag "${timepoint}"
 	
-	memory 2.GB
-	// memory { 2.GB * task.attempt }
-	// errorStrategy 'retry'
-	// maxRetries 2
-	containerOptions '--memory=2g'
+	memory { 2.GB * task.attempt }
+	errorStrategy 'retry'
+	maxRetries 2
+	// containerOptions '--memory=2g'
 	cpus 1
-	
 
 	input:
 	tuple val(timepoint), file(fastq), file(primers)
@@ -282,7 +278,8 @@ process ONT_READ_MAPPING {
 
 	script:
 	"""
-	mapPacBio.sh in=${fastq} ref=${params.refseq} out=${timepoint}.sam -Xmx2g
+	minimap2 -ax map-ont -t 1 -o ${timepoint}.sam ${params.refseq} ${fastq} && \
+	rm -f *.fastq.gz
 	"""
 
 }
@@ -295,7 +292,7 @@ process ONT_ALIGNMENT_POLISHING {
 	tag "${timepoint}"
 	
 	publishDir params.results_data_files, pattern: '*.bam', mode: 'copy'
-	publishDir params.results_data_files, pattern: '*.bam.bai', mode: 'copy'
+	publishDir params.results_data_files, pattern: '*.bam.bai', mode: 'move'
 
 	input:
 	tuple val(timepoint), file(sam), file(primers)
@@ -310,7 +307,8 @@ process ONT_ALIGNMENT_POLISHING {
 	cat ${sam} \
 	| samtools ampliconclip -b ${primers} - \
 	| samtools view -Sb - \
-	| samtools sort - > ${timepoint}.bam
+	| samtools sort - > ${timepoint}.bam && \
+	rm -f ${sam}
 
 	samtools index ${timepoint}.bam
 
@@ -324,8 +322,8 @@ process ONT_LOWCOV_ANNOTATION {
 
 	tag "${timepoint}"
 	
-	publishDir params.results_data_files, pattern: '*.bed', mode: 'copy'
-
+	publishDir params.results_data_files, mode: 'copy'
+	
 	input:
 	tuple val(timepoint), file(bam)
 
@@ -334,7 +332,8 @@ process ONT_LOWCOV_ANNOTATION {
 
 	script:
 	"""
-	covtobed --max-cov=20 ${bam} > ${timepoint}.bed
+	covtobed --max-cov=20 ${bam} > ${timepoint}.bed && \
+	rm -f *.bam
 	"""
 
 }
@@ -373,11 +372,10 @@ process ILL_READ_MAPPING {
 
 	tag "${timepoint}"
 	
-	memory 2.GB
-	// memory { 2.GB * task.attempt }
-	// errorStrategy 'retry'
-	// maxRetries 2
-	containerOptions '--memory=2g'
+	memory { 2.GB * task.attempt }
+	errorStrategy 'retry'
+	maxRetries 2
+	// containerOptions '--memory=2g'
 	cpus 1
 
 	input:
@@ -388,7 +386,8 @@ process ILL_READ_MAPPING {
 
 	script:
 	"""
-	bbmap.sh in1=${r1_fastq} in2=${r2_fastq} ref=${params.refseq} out=${timepoint}.sam -Xmx2g
+	minimap2 -ax sr -t 1 -o ${timepoint}.sam ${params.refseq} ${r1_fastq} ${r2_fastq} && \
+	rm -f *.fastq.gz
 	"""
 
 }
@@ -401,7 +400,7 @@ process ILL_ALIGNMENT_POLISHING {
 	tag "${timepoint}"
 	
 	publishDir params.results_data_files, pattern: '*.bam', mode: 'copy'
-	publishDir params.results_data_files, pattern: '*.bam.bai', mode: 'copy'
+	publishDir params.results_data_files, pattern: '*.bam.bai', mode: 'move'
 
 	input:
 	tuple val(timepoint), file(sam), file(primers)
@@ -416,7 +415,8 @@ process ILL_ALIGNMENT_POLISHING {
 	cat ${sam} \
 	| samtools ampliconclip -b ${primers} - \
 	| samtools view -Sb - \
-	| samtools sort - > ${timepoint}.bam
+	| samtools sort - > ${timepoint}.bam && \
+	rm -f ${sam}
 
 	samtools index ${timepoint}.bam
 
@@ -429,7 +429,8 @@ process ILL_LOWCOV_ANNOTATION {
 	// Creating BED files that annotate regions of each genome with less than 20x coverage
 
 	tag "${timepoint}"
-	publishDir params.results_data_files, pattern: '*.bed', mode: "copy"
+	
+	publishDir params.results_data_files, mode: 'copy'
 
 	input:
 	tuple val(timepoint), file(bam)
@@ -439,7 +440,8 @@ process ILL_LOWCOV_ANNOTATION {
 
 	script:
 	"""
-	covtobed --max-cov=20 ${bam} > ${timepoint}.bed
+	covtobed --max-cov=20 ${bam} > ${timepoint}.bed && \
+	rm -f ${bam}
 	"""
 
 }
@@ -450,7 +452,7 @@ process FIGURE_2A_PLOTTING {
 	// Plotting consensus mutations
 
 	publishDir params.visuals, pattern: '*.pdf', mode: 'move'
-	publishDir params.results_data_files, pattern: '*.csv', mode: 'move'
+	publishDir params.results, pattern: '*.csv', mode: 'move'
 
 	input:
 	file(consensus)
@@ -465,7 +467,9 @@ process FIGURE_2A_PLOTTING {
 
 	script:
 	"""
-	Figure2A_consensus_mutations_through_time.R ${consensus}
+	Figure2A_consensus_mutations_through_time.R ${consensus} && \
+	rm -f *.bed && \
+	rm -f *.tsv
 	"""
 
 }
@@ -473,7 +477,9 @@ process FIGURE_2A_PLOTTING {
 
 process TAR_FIG2A_DATA {
 	
-	publishDir params.results, pattern: '*.tar.gz', mode: 'move'
+	publishDir params.results, pattern: '*.tar.xz', mode: 'move'
+	
+	cpus 4
 	
 	when:
 	cue == "finished"
@@ -482,11 +488,14 @@ process TAR_FIG2A_DATA {
 	val(cue)
 	
 	output:
-	path("fig2a_data.tar.xz")
+	path("*.tar.xz")
 	
 	script:
+	date = new java.util.Date().format('yyyyMMdd')
+	
 	"""
-	tar -I 'xz -9' -chf fig2a_data.tar.xz ${params.results_data_files}
+	tar -cf - ${params.results_data_files} | xz -9ve --threads=0 -z - > fig2a_data_${date}.tar.xz && \
+	rm -rf ${params.results_data_files}
 	"""
 	
 }
