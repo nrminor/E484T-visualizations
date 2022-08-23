@@ -488,7 +488,7 @@ process TAR_FIG2A_DATA {
 	cpus 4
 	
 	when:
-	cue == "finished"
+	cue == "finished" && params.tar_data == true
 	
 	input:
 	val(cue)
