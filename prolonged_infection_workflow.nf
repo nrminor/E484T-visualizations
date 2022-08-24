@@ -473,9 +473,9 @@ process FIGURE_2A_PLOTTING {
 
 	script:
 	"""
-	Figure2A_consensus_mutations_through_time.R ${consensus} && \
-	rm -f *.bed && \
-	rm -f *.tsv
+	Figure2A_consensus_mutations_through_time.R ${consensus} ${params.refgff} && \
+	rm -f `realpath *.bed` && \
+	rm -f `realpath *.tsv`
 	"""
 
 }

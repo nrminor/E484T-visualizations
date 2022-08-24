@@ -27,6 +27,7 @@ if(length(new.packages)) install.packages(new.packages)
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 input_fasta = args[1]
+input_gff = args[2]
 
 
 
@@ -45,8 +46,25 @@ fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina",
 
 
 
-### VCF PREP ####
-### ------- #
+### GFF PREP ####
+### -------- #
+gff <- read_delim("MN9089473.gff3", skip = 2, header = F)
+gff <- gff[gff$V3!="region",] ; rownames(gff) <- NULL
+gff$cds_id <- NA
+gff$gene <- NA
+for (i in 1:nrow(gff)){
+  
+  sub <- unlist(str_split(gff[i, 9], ";"))
+  gff$cds_id[i] <- str_remove(sub[1], "ID=")
+  gff$gene[i] <- str_remove(sub[2], "Name=")
+  gff$gene[i] <- str_remove(gff$gene[i], "Parent=gene-")
+  
+}
+
+
+
+### VARIANT TABLE PREP ####
+### ------------------ #
 timepoint1 <- read.delim("USA_WI-WSLH-202168_2020_consensus_variant_table.tsv")
 timepoint1 <- timepoint1[timepoint1$ALT!="N",]
 timepoint1 <- timepoint1[,c("POS", "REF", "ALT", "GFF_FEATURE", "REF_CODON", 
@@ -122,9 +140,7 @@ timepoint12$DAY <- fasta_df$day_of_infection[12]
 variants <- rbind(timepoint1, timepoint2, timepoint3, timepoint4, timepoint5, 
                   timepoint6, timepoint7, timepoint8, timepoint9, timepoint10,
                   timepoint11, timepoint12)
-# sanity check before running the following line of code: 
-# in the environment, do all the individual timepoint variant tables show an
-# increase in the number of mutations through time?
+
 remove(timepoint1, timepoint2, timepoint3, timepoint4, timepoint5, 
        timepoint6, timepoint7, timepoint8, timepoint9, timepoint10,
        timepoint11, timepoint12)
@@ -135,6 +151,11 @@ variants <- variants[order(variants$POS),] ; rownames(variants) <- NULL
 variants$EFFECT <- NA
 for (i in 1:nrow(variants)){
   
+  if (!is.na(variants$GFF_FEATURE[i])){
+    feature <- variants$GFF_FEATURE[i]
+    variants$GFF_FEATURE[i] <- gff[gff$cds_id==feature, "gene"]
+  }
+  
   if (is.na(variants$REF_AA[i])){
     variants$EFFECT[i] <- "noncoding"
   } else if (variants$REF_AA[i]==variants$ALT_AA[i]){
@@ -143,21 +164,49 @@ for (i in 1:nrow(variants)){
     variants$EFFECT[i] <- "nonsynonymous"
   }
 }
-
-protein_effects <- data.frame("REF_POS_ALT" = unique(variants$REF_POS_ALT),
-                              "EFFECT" = NA)
-for (i in 1:nrow(protein_effects)){
-  j <- protein_effects[i, "REF_POS_ALT"]
-  protein_effects[i, "EFFECT"] <- variants[variants$REF_POS_ALT==j, "EFFECT"][1]
+colnames(variants)[4] <- "GENE"
+variants$CODON_NUMBER <- NA
+variants$GENE_CODON_AA <- NA
+for (i in 1:nrow(variants)){
+  
+  if(!is.na(variants[i, "GENE"])){
+    
+    gene_pos <- variants[i, c("GENE", "POS")]
+    gene_pos$start <- gff[gff$gene==variants[i, "GENE"] & gff$V3=="gene", "V4"]
+    gene_pos$stop <- gff[gff$gene==variants[i, "GENE"] & gff$V3=="gene", "V5"]
+    variants$CODON_NUMBER[i] <- ceiling((gene_pos$POS[1] - (gene_pos$start[1] - 1))/3)
+    
+    variants$GENE_CODON_AA[i] <- paste(variants$GENE[i], 
+                                       paste(variants$REF_AA[i], variants$CODON_NUMBER[i], variants$ALT_AA[i], sep = "-"), 
+                                       sep = " ")
+    
+  } else {
+    next
+  }
+  
 }
+write.csv(variants, "consensus_mutations_alltimepoints.csv", row.names = F, quote = F, na = "")
 
-for (i in unique(protein_effects$EFFECT)){
-  print(paste("There are",
-              nrow(protein_effects[protein_effects$EFFECT==i,]),
-              i,
-              "mutations among the consensus sequences."),
-        sep = " ")
+no_repeats <- variants[!is.na(variants$GENE_CODON_AA), ]
+no_repeats$keeper <- NA
+for (i in unique(no_repeats$GENE_CODON_AA)){
+  
+  if (nrow(no_repeats[no_repeats$GENE_CODON_AA==i,]) > 1){
+    
+    no_repeats[no_repeats$GENE_CODON_AA==i, "keeper"][1] <- T
+    no_repeats[no_repeats$GENE_CODON_AA==i, "keeper"][2:nrow(no_repeats[no_repeats$GENE_CODON_AA==i, ])] <- F
+    
+  } else {
+    
+    no_repeats[no_repeats$GENE_CODON_AA==i, "keeper"][1] <- T
+    
+  }
+  
 }
+no_repeats <- no_repeats[no_repeats$keeper==T,]
+no_repeats <- no_repeats[, 1:(which(colnames(no_repeats)=="keeper")-1)] ; rownames(no_repeats) <- NULL
+colnames(no_repeats)[which(colnames(no_repeats)=="DAY")] <- "FIRST_DAY_OF_DETECTION"
+write.csv(no_repeats, "unique_consensus_mutations.csv", row.names = F, quote = F, na = "")
 
 
 
