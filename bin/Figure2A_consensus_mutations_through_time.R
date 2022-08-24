@@ -48,7 +48,7 @@ fasta_df$seq_platform <- c("ONT", "ONT", "ONT", "ONT", "ONT", "ONT", "Illumina",
 
 ### GFF PREP ####
 ### -------- #
-gff <- read_delim("MN9089473.gff3", skip = 2, header = F)
+gff <- read.delim(input_gff, skip = 2, header = F)
 gff <- gff[gff$V3!="region",] ; rownames(gff) <- NULL
 gff$cds_id <- NA
 gff$gene <- NA
@@ -177,7 +177,7 @@ for (i in 1:nrow(variants)){
     variants$CODON_NUMBER[i] <- ceiling((gene_pos$POS[1] - (gene_pos$start[1] - 1))/3)
     
     variants$GENE_CODON_AA[i] <- paste(variants$GENE[i], 
-                                       paste(variants$REF_AA[i], variants$CODON_NUMBER[i], variants$ALT_AA[i], sep = "-"), 
+                                       paste(variants$REF_AA[i], variants$CODON_NUMBER[i], variants$ALT_AA[i], sep = ""), 
                                        sep = " ")
     
   } else {
