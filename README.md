@@ -3,15 +3,15 @@
 This workflow was created to efficiently gather, process, and visualize data presented in [Halfmann et al. 2022, _Evolution of a globally unique SARS-CoV-2 Spike E484T monoclonal antibody escape mutation in a persistently infected, immunocompromised individual_](https://www.medrxiv.org/content/10.1101/2022.04.11.22272784v1). Raw reads from the course of the prolonged infection are pulled automatically from SRA BioProject PRJNA836936. Consensus sequences are bundled together with the workflow documents and are included in [the project GitHub repository](https://github.com/dholab/E484T-visualizations/tree/main). Also included is a table of neutralization assay results and a table of qPCR cycle threshold (Ct) values from the infection.
 
 Note that this workflow does not include processing behind Halfmann et al. 2022 supplemental tables and figures. These workflows are bundled separately and can be accessed by following the links in these GitHub repos:
-- [Supplemental Figure 1](https://github.com/nrminor/prolonged-infection-suppfig1)
-- [Supplemental Figure 2](https://github.com/nrminor/prolonged-infection-suppfig2)
+- [Supplemental Figure 1](https://github.com/dholab/prolonged-infection-suppfig1)
+- [Supplemental Figure 2](https://github.com/dholab/prolonged-infection-suppfig2)
 
 ## Quick Start
 
 If you already have Docker and NextFlow installed on your system, simply run the following command in the directory of your choice:
 
 ```
-nextflow run nrminor/E484T-visualizations -latest
+nextflow run dholab/E484T-visualizations -latest
 ```
 
 This command automatically pulls the workflow from GitHub and runs it. If you do not have Docker and NextFlow installed, or want to tweak any of the default configurations in the workflow, proceed to the following sections.
@@ -22,7 +22,7 @@ This command automatically pulls the workflow from GitHub and runs it. If you do
 To run this workflow, start by running `git clone` to bring the workflow files into your directory of choice, like so:
 
 ```
-git clone https://github.com/nrminor/E484T-visualizations .
+git clone https://github.com/dholab/E484T-visualizations .
 ```
 
 Once the workflow bundle is in place, you may need to double-check that the workflow scripts are executable by running `chmod +x bin/*` in the command line.
