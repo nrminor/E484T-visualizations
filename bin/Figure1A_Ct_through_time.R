@@ -3,7 +3,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 
-### PLOTTING QRT-PCR CT VALUES OVER THE COURSE OF A 433-DAY PROLONGED INFECTION
+### PLOTTING QRT-PCR CT VALUES OVER THE COURSE OF A 486-DAY PROLONGED INFECTION
 # UPDATED: 29-Mar-2022 by Nicholas R. Minor
 # ----------------------------------------------------------------- #
 
